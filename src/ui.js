@@ -60,7 +60,7 @@ function shell() {
   <div class="app">
     <header class="top" id="top">
       <div class="top-in">
-        <button class="brand" data-goto="home" aria-label="Home"><span class="logo">${ic("bike")}</span><span class="bt"><b id="brandName">GS750 Restoration HQ</b><span id="brandBike">1977 Suzuki GS750</span></span></button>
+        <button class="brand" data-goto="home" aria-label="Home"><span class="logo">${ic("bike")}</span><span class="bt"><b id="brandName">Revora</b><span id="brandBike">1977 Suzuki GS750</span></span></button>
         <div class="vbox" id="vbox"></div>
         <nav class="mainnav" id="nav" aria-label="Main"></nav>
         <div class="top-r">
@@ -73,7 +73,7 @@ function shell() {
     </header>
     <div class="subbar"><div class="subbar-in"><div class="crumbs" id="crumbs"></div><div class="row" style="gap:10px"><span class="progchip" id="progChip"></span><span class="modebadge" id="modeBadge"></span></div></div></div>
     <div class="main"><main class="content" id="content" tabindex="-1"></main>
-      <footer class="foot"><div><b>GS750 Restoration HQ</b><span>A restoration course and workshop log for a 1977 Suzuki GS750.</span></div><div class="row"><button class="linkbtn" data-goto="guides">Guides</button><button class="linkbtn" data-goto="shops">Where to buy</button><button class="linkbtn" data-goto="help">Help</button><button class="linkbtn" data-goto="settings">Backups</button></div></footer></div>
+      <footer class="foot"><div><b>Revora</b><span>Restoration course and workshop log. Now working on a 1977 Suzuki GS750.</span></div><div class="row"><button class="linkbtn" data-goto="guides">Guides</button><button class="linkbtn" data-goto="shops">Where to buy</button><button class="linkbtn" data-goto="help">Help</button><button class="linkbtn" data-goto="settings">Backups</button></div></footer></div>
   </div>
   <div class="mobback" id="mobback" hidden></div><div class="mobmenu" id="mobmenu" hidden role="dialog" aria-label="Menu"></div>
   <div id="drawerHost"></div><div id="modalHost"></div><div class="toasts" id="toasts" aria-live="polite"></div>`;
@@ -108,7 +108,7 @@ function renderNav() {
     `<button class="nl ${inMore ? "on" : ""} ${mg && !mg.hidden ? "open" : ""}" data-more aria-expanded="${mg && !mg.hidden}">More ${ic("chev")}</button>`;
   $("#nav [data-more]").onclick = e => { e.stopPropagation(); const m = $("#mega"); if (m.hidden) { m.innerHTML = megaHtml(); m.hidden = false; } else m.hidden = true; renderNav(); };
   const m = meta(), prog = overallProgress();
-  $("#brandName").textContent = m.projectName || "GS750 Restoration HQ";
+  $("#brandName").textContent = "Revora";
   $("#brandBike").textContent = m.bike || "1977 Suzuki GS750";
   const vq = $("#vq"); if (vq) vq.placeholder = vehLabel(curVehicle()); const vp = $("#vpop"); if (vp && !vp.hidden && document.activeElement === vq) { /* keep open popover fresh */ vp.innerHTML = vehResultHtml(vq.value); }
   $("#progChip").innerHTML = `<i style="--p:${Math.round(prog * 100)}"></i>${pct(prog)} restored`;

@@ -1,4 +1,4 @@
-# GS750 Restoration HQ
+# Revora
 
 Restoration course, parts tracker, 3D garage and technical diagrams for a 1977 Suzuki GS750.
 

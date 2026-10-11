@@ -3,8 +3,8 @@ ROOT=pathlib.Path(__file__).resolve().parent.parent
 src=ROOT/'src'
 css=(src/'style.css').read_text()
 js='\n'.join((src/f).read_text() for f in ['core.js','model.js','content.js','howto.js','art_data.js','ui.js','vehicle.js','views.js','views2.js','views3.js','views4.js','twin_data.js','twin_internals.js','twin.js','viewer.js','diag_draw.js','diag_data.js','diag_data2.js','diag.js','chat.js'])
-html=f'''<title>GS750 Restoration HQ</title>
-<meta name="description" content="Restoration control center for a 1977 Suzuki GS750">
+html=f'''<title>Revora</title>
+<meta name="description" content="Revora: restoration course, parts tracker, 3D garage and technical diagrams. Now working on a 1977 Suzuki GS750.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&display=swap">
 <style>

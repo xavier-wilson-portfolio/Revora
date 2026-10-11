@@ -1068,3 +1068,8 @@ body.tw-fullon .chat-fab{display:none}
 .vgrid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
 .vcard .vc-p{display:none}
 .vcard.seen .vc-t small{color:var(--green)}
+/* Revora brand: the short name always shows; the vehicle line under it hides on narrower screens */
+.top .brand .bt{display:flex!important;flex-direction:column}
+@media (max-width:1680px){.top .brand .bt span{display:none}}
+@media (max-width:1520px){.top .brand .bt{display:none!important}}
+.top .brand .bt b{font-size:20px;letter-spacing:.04em}

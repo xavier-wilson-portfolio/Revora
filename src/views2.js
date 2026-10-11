@@ -69,7 +69,7 @@ async function addExamples() {
 }
 
 /* ============ HELP ============ */
-VIEWS.help = { render() { return `<div class="ph"><div><h1>Help & workflow</h1><p>How the team uses GS750 Restoration HQ from teardown to first ride.</p></div></div>
+VIEWS.help = { render() { return `<div class="ph"><div><h1>Help & workflow</h1><p>How the team uses Revora from teardown to first ride.</p></div></div>
   <div class="panel help">
   <h3>The order of work</h3>
   <ol><li><b>Confirm the bike.</b> Task A-001: record frame and engine IDs and the exact variant in Settings. Part numbers, wiring diagrams and carb settings depend on it.</li>

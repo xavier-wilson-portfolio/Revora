@@ -10,7 +10,7 @@ const legend = items => `<div class="legend">${items.map(([c, l]) => `<span><i s
 
 /* ============ setup / empty project ============ */
 function setupPanel() {
-  return `<div class="ph"><div><h1>Set up GS750 Restoration HQ</h1><p>The project database is empty. Load your restoration workbook to start: 93 tasks across phases A–N, 49 parts, 22 inspections, 16 quality gates, 20 pre-start safety checks, the module procedures, sources and maintenance items.</p></div></div>
+  return `<div class="ph"><div><h1>Set up Revora</h1><p>The project database is empty. Load your restoration workbook to start: 93 tasks across phases A–N, 49 parts, 22 inspections, 16 quality gates, 20 pre-start safety checks, the module procedures, sources and maintenance items.</p></div></div>
   <div class="panel blue stack"><div class="row"><button class="btn pri" id="loadBase">${ic("download")} Load the restoration workbook</button><button class="btn" id="importJson">Import a JSON backup instead</button></div>
   <div id="loadProg" class="muted"></div>
   <p class="muted" style="margin:0">${ME.mode === "shared" ? "Records go into this page's shared database, so everyone you share the page with sees the same data." : "This copy is running without the shared database, so records are saved in this browser only."}</p></div>`;
