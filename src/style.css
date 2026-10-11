@@ -1071,5 +1071,8 @@ body.tw-fullon .chat-fab{display:none}
 /* Revora brand: the short name always shows; the vehicle line under it hides on narrower screens */
 .top .brand .bt{display:flex!important;flex-direction:column}
 @media (max-width:1680px){.top .brand .bt span{display:none}}
-@media (max-width:1520px){.top .brand .bt{display:none!important}}
+@media (max-width:1020px){.top .brand .bt{display:none!important}}
+@media (max-width:1520px){.vbox{flex-basis:150px}.top .search{flex-basis:120px}.mainnav .nl{padding:8px 6px;font-size:13.5px}.top-in{gap:10px}.top .brand .bt b{font-size:18px}}
+@media (max-width:1300px){.mainnav .nl{padding:8px 5px;font-size:12.5px}.vbox{flex-basis:130px}.top .search{flex-basis:96px}.savebadge{display:none}}
+@media (max-width:1160px){.vbox{flex-basis:110px}.top .search{display:none}}
 .top .brand .bt b{font-size:20px;letter-spacing:.04em}
