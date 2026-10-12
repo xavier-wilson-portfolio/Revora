@@ -1076,3 +1076,12 @@ body.tw-fullon .chat-fab{display:none}
 @media (max-width:1300px){.mainnav .nl{padding:8px 5px;font-size:12.5px}.vbox{flex-basis:130px}.top .search{flex-basis:96px}.savebadge{display:none}}
 @media (max-width:1160px){.vbox{flex-basis:110px}.top .search{display:none}}
 .top .brand .bt b{font-size:20px;letter-spacing:.04em}
+
+/* Header nav: bigger words that spread across the bar */
+@media (min-width:1021px){
+  .mainnav{flex:1 1 auto;justify-content:space-evenly;margin:0 8px;min-width:0}
+  .mainnav .nl{font-size:clamp(14px,1.24vw,19px);padding:8px clamp(4px,.42vw,12px);letter-spacing:.005em}
+  .top-in{max-width:1760px}
+  .nl.on::after{left:6px;right:6px;bottom:0;height:3px}
+  .nl svg{width:16px;height:16px}
+}
