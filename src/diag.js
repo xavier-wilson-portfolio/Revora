@@ -77,12 +77,13 @@ VIEWS.diagrams = {
     const d = R.diag && diagById(R.diag);
     if (!d) return `${pageHead("diagrams")}
       <div class="row dfilter"><span class="muted">${DIAGRAMS.length} diagrams, one for every page of the CMSNL catalogue.</span><span class="spacer"></span><div class="seg"><button class="${DIAG_ONLY_B ? "on" : ""}" data-donly="1">Fits the GS750B</button><button class="${DIAG_ONLY_B ? "" : "on"}" data-donly="0">All models</button></div></div>
-      ${DIAG_SYSTEMS.map(sys => { const list = DIAGRAMS.filter(x => x.system === sys && (!DIAG_ONLY_B || diagFitsB(x))).sort((a, b) => (a.fig || "").localeCompare(b.fig || "")); if (!list.length) return ""; return `<section class="stack"><h2 class="sec left">${esc(sys)} <span class="faint" style="font-weight:500">(${list.length})</span></h2><div class="dgrid">${list.map(x => `<button class="dcard" data-diag="${x.id}"><div class="dthumb">${diagStatic(x)}</div><div class="dmeta"><span class="mono faint">${esc(x.fig || "")}${x.blk ? " · " + esc(x.blk) : ""}</span><b>${esc(x.title)}</b><small>${x.parts.length} parts${x.models && !/^All/.test(x.models) ? " · " + esc(x.models) : ""}${x.steps ? ` · ${x.steps.length} steps` : ""}</small>${x.gen ? `<span class="vpill ${x.layoutMatched ? "v-names" : "v-schematic"}">${x.layoutMatched ? "Layout matched" : "Catalogue parts"}</span>` : verPill(x.verify)}</div></button>`).join("")}</div></section>`; }).join("")}
+      ${DIAG_SYSTEMS.map(sys => { const list = DIAGRAMS.filter(x => x.system === sys && (!DIAG_ONLY_B || diagFitsB(x))).sort((a, b) => (a.fig || "").localeCompare(b.fig || "")); if (!list.length) return ""; return `<section class="stack"><h2 class="sec left">${esc(sys)} <span class="faint" style="font-weight:500">(${list.length})</span></h2><div class="dgrid">${list.map(x => `<button class="dcard" data-diag="${x.id}"><div class="dthumb">${diagStatic(x)}</div><div class="dmeta"><span class="mono faint">${esc(x.fig || "")}${x.blk ? " · " + esc(x.blk) : ""}</span><b>${esc(x.title)}</b><small>${x.parts.length} parts${x.models && !/^All/.test(x.models) ? " · " + esc(x.models) : ""}${x.steps ? ` · ${x.steps.length} steps` : ""}</small>${D3_MODELS[x.id] ? `<span class="vpill v-names">3D model</span>` : ""}${x.gen ? `<span class="vpill ${x.layoutMatched ? "v-names" : "v-schematic"}">${x.layoutMatched ? "Layout matched" : "Catalogue parts"}</span>` : verPill(x.verify)}</div></button>`).join("")}</div></section>`; }).join("")}
       ${CMS_PICTURE_ONLY.length ? `<section class="stack"><h2 class="sec left">Picture only on CMSNL</h2><div class="tcard"><ul class="dpend">${CMS_PICTURE_ONLY.map(p => `<li><b>${esc(p.title)}</b><span>${esc(p.models)}. CMSNL shows the drawing but no parts list, so there's nothing to number yet. <a href="${esc(p.url)}" target="_blank" rel="noopener">Open on CMSNL</a></span></li>`).join("")}</ul></div></section>` : ""}
       <details class="panel"><summary><b>How to add a new technical diagram</b></summary>${diagHowTo()}</details>`;
+    if (d3On(d)) return d3PageHtml(d);
     if (DV.id !== d.id) { const v0 = diagViews(d)[0] || "exploded"; Object.assign(DV, { id: d.id, view: v0, sel: null, hidden: new Set(), step: null, vb: null, playing: false, pos: diagLayout(d, v0) }); }
     const st = meta().diagSteps?.[d.id] || {};
-    return `<div class="dhead"><button class="linkbtn" data-diagback>${ic("back")} All diagrams</button><div class="dtitle"><span class="mono">${esc(d.fig)}</span><h1>${esc(d.title)}</h1>${verPill(d.verify)}</div></div>
+    return `<div class="dhead"><button class="linkbtn" data-diagback>${ic("back")} All diagrams</button><div class="dtitle"><span class="mono">${esc(d.fig)}</span><h1>${esc(d.title)}</h1>${verPill(d.verify)}</div>${D3_MODELS[d.id] ? `<div class="seg"><button data-d3mode2="3d">3D model</button><button class="on">2D drawing</button></div>` : ""}</div>
     <div class="dview">
       <div class="dmain"><div class="dtools" role="toolbar" aria-label="Diagram tools">
         ${diagViews(d).length > 1 ? `<div class="seg">${diagViews(d).map(k => `<button data-dv="${k}" class="${DV.view === k ? "on" : ""}">${k[0].toUpperCase() + k.slice(1)}</button>`).join("")}</div>` : ""}
@@ -100,8 +101,11 @@ VIEWS.diagrams = {
   bind(root) {
     $$("[data-donly]", root).forEach(b => b.onclick = () => { DIAG_ONLY_B = b.dataset.donly === "1"; render(true); });
     $$("[data-diag]", root).forEach(b => b.onclick = () => { R.diag = b.dataset.diag; DV.id = null; location.hash = "diagram-" + R.diag; render(true); window.scrollTo(0, 0); });
-    $$("[data-diagback]", root).forEach(b => b.onclick = () => { R.diag = null; DV.id = null; DV.playing = false; location.hash = "diagrams"; render(true); });
-    const d = R.diag && diagById(R.diag); if (!d) return; bindTables(root); diagBindStage(d);
+    $$("[data-diagback]", root).forEach(b => b.onclick = () => { d3Teardown(); R.diag = null; DV.id = null; DV.playing = false; location.hash = "diagrams"; render(true); });
+    const d = R.diag && diagById(R.diag); if (!d) { d3Teardown(); return; }
+    if (d3On(d)) { d3Bind(root, d); return; }
+    d3Teardown(); $$("[data-d3mode2]", root).forEach(b => b.onclick = () => { D3.mode[d.id] = "3d"; render(true); });
+    bindTables(root); diagBindStage(d);
     const re = () => render(false);
     $$("[data-dv]", root).forEach(b => b.onclick = () => { const vs = diagViews(d), v = b.dataset.dv === DV.view && vs.length > 1 ? vs.find(x => x !== DV.view) : b.dataset.dv; if (DV.step != null) { DV.step = null; if (DV.pre) { DV.hidden = DV.pre.hidden; DV.sel = DV.pre.sel; } DV.pre = null; } diagSetView(d, v); re(); });
     $$("[data-dz]", root).forEach(b => b.onclick = () => diagZoom(d, b.dataset.dz));
@@ -132,7 +136,7 @@ VIEWS.diagrams = {
     const up = $("#dUpload", root); if (up) up.onclick = () => uploadPhotos({ partId: up.dataset.pid });
     $$("[data-ba]", root).forEach(r => r.oninput = () => { const w = r.closest(".bacomp"); w.style.setProperty("--x", r.value + "%"); });
   },
-  teardown() { DV.playing = false; },
+  teardown() { DV.playing = false; d3Teardown(); },
 };
 function diagStepPos(d, s) { const base = diagLayout(d, s.view || DV.view), out = Object.assign({}, base); Object.entries(s.pos || {}).forEach(([k, v]) => { const p = d.parts.find(x => x.k === k); if (!p) return; out[k] = v === "a" ? (p.a || base[k]).slice() : v === "e" ? diagLayout(d, "exploded")[k] : v.slice(); }); return out; }
 function diagRedraw(d) {
