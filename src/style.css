@@ -1098,3 +1098,5 @@ body.tw-fullon .chat-fab{display:none}
 .dsvg .dc.on circle{fill:#8cc0de}.dsvg .dc.on text{fill:#161d22}
 .dsvg.thumb .darrows,.dsvg.thumb .dtb{display:none}
 .dfilter{align-items:center;gap:10px}.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:999px;padding:3px;background:var(--panel)}.seg button{all:unset;cursor:pointer;padding:6px 14px;border-radius:999px;font-size:13.5px;font-weight:600}.seg button.on{background:var(--navy);color:#fff}
+
+.dsvg .scaled *{vector-effect:non-scaling-stroke}

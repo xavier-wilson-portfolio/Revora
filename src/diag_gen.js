@@ -6,8 +6,38 @@
    with ref callouts and amber arrows showing which way each part goes on. */
 const CMS_SITE = "https://www.cmsnl.com/suzuki-gs750-1977-b-usa-e03_model34273/partslist/";
 const CMS_HAND = { BLCK0030: "DG-CH-01", BLCK0028: "DG-BR-01", BLCK0034: "DG-CH-02", BLCK0004: "DG-EN-01", BLCK0016: "DG-EN-02", BLCK0009: "DG-EN-03", BLCK0005: "DG-FU-01", BLCK0077: "DG-EL-01" };
-/* Positions matched to the CMSNL pictures: { BLCK0001: { "1": [x, y], ... } } in a 1200-wide sheet. Filled page by page. */
-const CMS_POS = {};
+/* Positions read off the CMSNL pictures, page by page. box = the drawing's area in the screenshot it was read from;
+   at = where each ref's part sits in that screenshot: [x, y] or [x, y, width] for big parts drawn to size.
+   Parts are then nudged apart just enough that nothing touches. */
+const CMS_POS = {
+  BLCK0018: { box: [516, 200, 1051, 615], at: {
+    "1": [740, 410, 230], "2": [912, 302], "3": [928, 340], "4": [893, 296], "5": [852, 258], "6": [862, 322], "7": [815, 545, 230], "8": [705, 566], "9": [870, 505], "10": [905, 500],
+    "11": [724, 600], "12": [952, 497], "13": [952, 516], "14": [772, 252], "15": [772, 270], "16": [948, 452], "17": [932, 433], "18": [685, 262], "19": [596, 378], "20": [920, 362],
+    "21": [990, 325], "22": [978, 258], "23": [955, 292], "24": [995, 218], "25": [600, 447], "26": [548, 487], "27": [572, 467], "28": [529, 501], "29": [540, 456], "30": [521, 472] } },
+};
+/* Place parts at the picture positions, then push overlapping parts apart (bigger parts move less). */
+function cmsPlace(items, P) {
+  const [x0, y0, x1] = P.box, k = 1100 / (x1 - x0), M = 16;
+  const rs = items.map(it => { const a = P.at[it.ref]; if (!a) return null; const sc = a[2] ? (a[2] * k) / it.w : 1; it.sc = sc; return { it, cx: 50 + (a[0] - x0) * k, cy: 70 + (a[1] - y0) * k, w: it.w * sc, h: it.h * sc }; });
+  const placed = rs.filter(Boolean);
+  for (let iter = 0; iter < 400; iter++) {
+    let moved = false;
+    for (let i = 0; i < placed.length; i++) for (let j = i + 1; j < placed.length; j++) {
+      const a = placed[i], b = placed[j], ox = (a.w + b.w) / 2 + M - Math.abs(a.cx - b.cx), oy = (a.h + b.h) / 2 + M - Math.abs(a.cy - b.cy);
+      if (ox <= 0 || oy <= 0) continue; moved = true;
+      const wa = a.w * a.h, wb = b.w * b.h, fa = wb / (wa + wb), fb = wa / (wa + wb);
+      if (ox < oy) { const s = (a.cx < b.cx ? -1 : 1) * ox; a.cx += s * fa; b.cx -= s * fb; } else { const s = (a.cy < b.cy ? -1 : 1) * oy; a.cy += s * fa; b.cy -= s * fb; }
+    }
+    if (!moved) break;
+  }
+  const minX = Math.min(...placed.map(r => r.cx - r.w / 2)), minY = Math.min(...placed.map(r => r.cy - r.h / 2));
+  const dx = 50 - minX, dy = 70 - minY, pos = {}; let maxX = 0, maxY = 0;
+  placed.forEach(r => { r.cx += dx; r.cy += dy; pos[r.it.k] = [r.cx - r.w / 2, r.cy]; maxX = Math.max(maxX, r.cx + r.w / 2); maxY = Math.max(maxY, r.cy + r.h / 2); });
+  // anything without a picture position goes in a row underneath
+  let x = 50, y = maxY + 80, rowH = 0;
+  rs.forEach((r, i) => { if (r) return; const it = items[i]; it.sc = 1; if (x + it.w > 1150) { x = 50; y += rowH + 60; rowH = 0; } pos[it.k] = [x, y + it.h / 2]; x += it.w + 40; rowH = Math.max(rowH, it.h); maxY = Math.max(maxY, y + it.h); });
+  return { pos, W: Math.max(1200, maxX + 60), H: maxY + 100 };
+}
 const CMS_SYS = [
   ["Engine", /CAM |CAM-|CAM SHAFT|CHAIN CASE|CLUTCH|CRANC|CRANK|CYLINDER|OIL P|TRANSMISSION|GEAR SHIFT|KICK|STARTER CLUTCH|MUFFLER/],
   ["Fuel & air", /AIR CLEANER|CARBURETOR|FUEL/],
@@ -124,7 +154,7 @@ const NOUN_RULES = [
   [/^(LOCK WASHER|WASHER,LOCK|SPRING WASHER)/, "lockwasher"], [/^(WASHER|SHIM)/, "washer"], [/^(BOLT,STUD|STUD)/, "stud"], [/^BOLT/, "bolt"], [/^SCREW/, "screw"], [/^NUT/, "nut"],
   [/^(O RING|O-RING|ORING)/, "oring"], [/^GASKET.*\d+(\.\d+)?X\d/, "gasketRing"], [/^(GASKET|DIAPHRAGM|PACKING)/, "gasket"], [/^(OIL SEAL|DUST SEAL|V SEAL|SEAL)/, "seal"], [/^BEARING/, "bearing"],
   [/^(CIRCLIP|CLIP|C RING|C-RING|E RING|RING,SNAP|SNAP RING|CLAMP|BAND)/, "clip"], [/^RING SET|^RING,PISTON/, "clip"], [/^SPRING/, "spring"], [/^(COTTER|PIN|JET|NEEDLE)/, "pin"],
-  [/^(SPACER|COLLAR|BUSH|SLEEVE|GRIP)/, "sleeve"], [/^(CAP|KNOB|SOCKET|TAPPET|NIPPLE)/, "cap"], [/^PLUG/, "plug"], [/^(GROMMET|CUSHION|RUBBER|BOOT|MOUNT)/, "grommet"],
+  [/^(SPACER|COLLAR|BUSH|SLEEVE|GRIP|GUIDE,VALVE)/, "sleeve"], [/^(CAP|KNOB|SOCKET|TAPPET|NIPPLE)/, "cap"], [/^PLUG/, "plug"], [/^(GROMMET|CUSHION|RUBBER|BOOT|MOUNT)/, "grommet"],
   [/^(PIPE,EXHAUST|MUFFLER|BODY,MUFFLER|CONNECTOR,MUFFLER)/, "muffler"], [/^(HOSE|PIPE|CABLE|WIRE|LEAD|CORD)/, "hose"], [/^TUBE,INNER|^TUBE ASSEMBLY,WHEEL/, "wheel"], [/^TUBE,FORK/, "shaft"],
   [/^HARNESS/, "harness"], [/^(HEADLAMP|LAMP)/, "lamp"], [/^LENS/, "lens"], [/^BULB/, "bulb"], [/^FUSE/, "fuse"], [/^(SWITCH)/, "switch"], [/^(SPEEDOMETER|TACHOMETER|METER)/, "meter"],
   [/^(BATTERY|REGULATOR|RECTIFIER|COIL|CONDENSER|RELAY|HORN|MOTOR|STARTER ASSY|GENERATOR|STATOR|BOX|UNIT|IGNITER|FLASHER|TERMINAL|CALIPER|CYLINDER ASSEMBLY,MASTER|BREAKER|GOVERNOR|PUMP)/, "unit"],
@@ -170,16 +200,16 @@ function cmsLayout(items, W = 1200) {
     const groups = []; pg.rows.forEach(r => { const b = cmsBase(r[0]) || "–"; let g = groups.find(x => x.ref === b); if (!g) groups.push(g = { ref: b, rows: [] }); g.rows.push(r); });
     const items = groups.map(g => { const sh = cmsShape(g.rows[0][2]); return { k: "r" + g.ref.replace(/\W/g, "_"), ref: g.ref, rows: g.rows, ...sh }; });
     const fixed = CMS_POS[blk];
-    const lay = cmsLayout(items); const H = Math.max(420, lay.H);
-    const main = items.slice().sort((a, b) => b.w * b.h - a.w * a.h)[0];
+    const lay = fixed ? cmsPlace(items, fixed) : cmsLayout(items); const H = Math.max(420, lay.H), W = lay.W || 1200;
+    const main = items.slice().sort((a, b) => b.w * b.h * (b.sc || 1) ** 2 - a.w * a.h * (a.sc || 1) ** 2)[0];
     const parts = items.map(it => {
-      const p0 = fixed && fixed[it.ref] ? [fixed[it.ref][0] - it.w / 2, fixed[it.ref][1]] : lay.pos[it.k];
+      const p0 = lay.pos[it.k], sc = it.sc || 1, w = it.w * sc, h = it.h * sc;
       const names = [...new Set(it.rows.map(r => r[2]))];
-      return { k: it.k, ref: it.ref === "–" ? "" : it.ref, name: cmsName(names[0]), short: cmsName(names[0]), len: it.w, w: it.w, h: it.h, z: it === main ? 1 : 3, e: p0,
-        anchor: [it.w / 2, 0], co: [0, -it.h / 2 - 26], toward: it === main ? null : main.k, draw: it.draw,
+      return { k: it.k, ref: it.ref === "–" ? "" : it.ref, name: cmsName(names[0]), short: cmsName(names[0]), len: w, w, h, z: it === main ? 1 : 3, e: p0,
+        anchor: [w / 2, 0], co: [0, -h / 2 - 26], toward: it === main ? null : main.k, draw: sc === 1 ? it.draw : () => `<g class="scaled" transform="scale(${sc.toFixed(3)})">${it.draw()}</g>`,
         note: it.rows.length > 1 ? `${it.rows.length} versions in the catalogue. Check the frame or engine number to pick the right one.` : "" };
     });
-    DIAGRAMS.push({ id: "CMS-" + blk, blk, gen: true, fig, title, system: sys, models: cmsModels(pg.title), kinds: ["exploded"], vb: [1200, H],
+    DIAGRAMS.push({ id: "CMS-" + blk, blk, gen: true, fig, title, system: sys, models: cmsModels(pg.title), kinds: ["exploded"], vb: [W, H],
       assembly: `Every part on the CMSNL "${pg.title}" page, numbered with the catalogue's reference numbers.`,
       source: { label: `CMSNL GS750 1977 USA, ${pg.title}`, url: CMS_SITE + blk + ".html" }, compat: `Catalogue page for: ${cmsModels(pg.title)}. Check your frame and engine numbers.`,
       verify: "names", inv: [], tasks: [], tools: [], supplies: [],
