@@ -1,10 +1,10 @@
 /* Revora "Ask the mechanic" proxy (Cloudflare Worker).
-   Holds the Anthropic API key so it never ships in the public website.
-   Settings (Worker > Settings > Variables and secrets):
-     ANTHROPIC_API_KEY  (secret, required)
-     ALLOWED_ORIGINS    comma list, default https://xavier-wilson-portfolio.github.io
-     MODEL              default claude-haiku-5-5
+   FREE mode (default): add a Workers AI binding named AI (Settings > Bindings > Add > Workers AI).
+     Uses Cloudflare's free daily allowance. No API key or card needed.
+   CLAUDE mode (optional, paid): add secret ANTHROPIC_API_KEY and variable PROVIDER = anthropic.
+   Other settings: ALLOWED_ORIGINS (comma list), MODEL (overrides the default model).
 */
+const FREE_MODELS = ["@cf/meta/llama-3.3-70b-instruct-fp8-fast", "@cf/meta/llama-3.1-8b-instruct"];
 const SYSTEM = `You are "the mechanic" on Revora, a website that helps people restore old motorcycles and cars.
 Only help with vehicle restoration, repair, maintenance, tools, parts, paint and shop safety. Politely decline anything else in one sentence.
 Never invent torque values, clearances, wear limits, jet sizes, wire colors, fluid capacities or part numbers. Point to the factory service manual section instead.
@@ -25,7 +25,8 @@ export default {
     const h = cors(origin);
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: h });
     if (req.method !== "POST") return deny(405, "POST only", h);
-    if (!env.ANTHROPIC_API_KEY) return deny(503, "not configured", h);
+    const useClaude = env.PROVIDER === "anthropic" && env.ANTHROPIC_API_KEY;
+    if (!useClaude && !env.AI) return deny(503, "not configured: add a Workers AI binding named AI", h);
 
     // Best-effort rate limit per visitor (per Worker instance).
     const ip = req.headers.get("CF-Connecting-IP") || "?", now = Date.now();
@@ -40,6 +41,18 @@ export default {
     if (!clean.length || clean[0].role !== "user" || clean[clean.length - 1].role !== "user") return deny(400, "bad messages", h);
     if (total > MAX_TOTAL) return deny(413, "too large", h);
 
+    if (!useClaude) {
+      // Free Cloudflare Workers AI. Reply in the same streamed format the website already reads.
+      let text = "", lastErr = "";
+      for (const model of (env.MODEL ? [env.MODEL] : FREE_MODELS)) {
+        try { const out = await env.AI.run(model, { messages: [{ role: "system", content: SYSTEM }, ...clean], max_tokens: 700 }); text = (out && out.response) || ""; if (text) break; }
+        catch (e) { lastErr = String(e && e.message || e); console.log("Workers AI error", model, lastErr); }
+      }
+      if (!text) return deny(/limit|quota|capacity/i.test(lastErr) ? 429 : 502, "free AI error " + lastErr.slice(0, 200), h);
+      const sse = o => "data: " + JSON.stringify(o) + "\n\n";
+      return new Response(sse({ type: "content_block_delta", delta: { type: "text_delta", text } }) + sse({ type: "message_delta", delta: { stop_reason: "end_turn" } }),
+        { status: 200, headers: { ...h, "content-type": "text/event-stream", "cache-control": "no-store" } });
+    }
     const up = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
