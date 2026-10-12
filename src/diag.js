@@ -30,23 +30,55 @@ function diagSvg(d, opts = {}) {
   const order = d.parts.filter(p => !p.noCall);
   const calls = opts.nums === false ? "" : order.map(p => { if (opts.hidden && opts.hidden.has(p.k)) return ""; const n = diagLabel(d, p), [x, y] = pos[p.k], an = p.anchor || (p.len ? (d.axis === "v" ? [0, p.len / 2] : [p.len / 2, 0]) : [0, 0]), off = (opts.view === "assembled" ? p.ca : null) || p.co || [0, -40];
     const ax = x + an[0], ay = y + an[1], abs = opts.view === "assembled" ? p.caAt : p.ceAt, cxp = abs ? abs[0] : ax + off[0], cyp = abs ? abs[1] : ay + off[1], ox = cxp - ax, oy = cyp - ay, L = Math.hypot(ox, oy) || 1, ex = cxp - ox / L * 9, ey = cyp - oy / L * 9;
-    return `<g class="dc${opts.sel === p.k ? " on" : ""}" data-k="${p.k}"><line x1="${ex.toFixed(1)}" y1="${ey.toFixed(1)}" x2="${ax.toFixed(1)}" y2="${ay.toFixed(1)}" stroke="${DK.ink}" stroke-width=".7" marker-end="url(#m-dot)"/><circle cx="${cxp.toFixed(1)}" cy="${cyp.toFixed(1)}" r="8.5" fill="#fff" stroke="${DK.ink}" stroke-width=".9"/><text x="${cxp.toFixed(1)}" y="${(cyp + 3.8).toFixed(1)}" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="${String(n).length > 2 ? 8.5 : 10.5}" font-weight="700" fill="${DK.ink}">${n}</text>${opts.labels ? `<text x="${(cxp + (ox < 0 ? -13 : 13)).toFixed(1)}" y="${(cyp + 3.8).toFixed(1)}" text-anchor="${ox < 0 ? "end" : "start"}" font-family="Inter,Arial,sans-serif" font-size="10.5" fill="${DK.ink}" paint-order="stroke" stroke="#fff" stroke-width="3">${esc(p.short || p.name)}</text>` : ""}</g>`; }).join("");
+    return `<g class="dc${opts.sel === p.k ? " on" : ""}" data-k="${p.k}"><line x1="${ex.toFixed(1)}" y1="${ey.toFixed(1)}" x2="${ax.toFixed(1)}" y2="${ay.toFixed(1)}" stroke="${DK.call}" stroke-width=".7" marker-end="url(#m-dot)"/><circle cx="${cxp.toFixed(1)}" cy="${cyp.toFixed(1)}" r="8.5" fill="${DSHEET}" stroke="${DK.call}" stroke-width="1"/><text x="${cxp.toFixed(1)}" y="${(cyp + 3.8).toFixed(1)}" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="${String(n).length > 2 ? 8.5 : 10.5}" font-weight="700" fill="${DK.ink}">${n}</text>${opts.labels ? `<text x="${(cxp + (ox < 0 ? -13 : 13)).toFixed(1)}" y="${(cyp + 3.8).toFixed(1)}" text-anchor="${ox < 0 ? "end" : "start"}" font-family="Inter,Arial,sans-serif" font-size="10.5" fill="${DK.ink}" paint-order="stroke" stroke="${DSHEET}" stroke-width="3">${esc(p.short || p.name)}</text>` : ""}</g>`; }).join("");
+  const arrows = opts.view !== "assembled" && opts.arrows !== false ? diagArrows(d, pos, opts) : "";
   const layer = (opts.view === "assembled" ? d.assembledExtra : d.explodedExtra) || (() => "");
   const vb = opts.vb || [0, 0, d.vb[0], d.vb[1]];
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(" ")}" class="dsvg" role="img" aria-label="${esc(d.title)}">${dkDefs()}<rect x="-5000" y="-5000" width="10000" height="10000" fill="#fbfaf7"/><g class="dall">${layer()}<g class="dparts">${parts}</g><g class="dcalls">${calls}</g></g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.join(" ")}" class="dsvg" role="img" aria-label="${esc(d.title)}">${dkDefs()}<rect x="-5000" y="-5000" width="10000" height="10000" fill="${DSHEET}"/><rect x="-5000" y="-5000" width="10000" height="10000" fill="url(#p-grid)"/><g class="dall">${layer()}<g class="darrows">${arrows}</g><g class="dparts">${parts}</g><g class="dcalls">${calls}</g>${diagTitleBlock(d, vb)}</g></svg>`;
+}
+/* Amber arrows on the exploded view: each part points the way it goes on.
+   Hand-drawn diagrams point toward the part's assembled position; generated ones toward the main part. */
+function diagArrows(d, pos, opts) {
+  const asm = diagViews(d).includes("assembled") ? diagLayout(d, "assembled") : null;
+  return d.parts.map(p => {
+    if (opts.hidden && opts.hidden.has(p.k)) return "";
+    const [x, y] = pos[p.k] || [0, 0], an = p.anchor || (p.len ? [p.len / 2, 0] : [0, 0]), ax = x + an[0], ay = y + an[1];
+    let tx, ty;
+    if (asm && p.a) { const [bx, by] = asm[p.k]; tx = bx + an[0]; ty = by + an[1];
+      // hand-drawn parts move along the build axis: keep only the main direction of travel
+      if (Math.abs(tx - ax) > Math.abs(ty - ay)) ty = ay; else tx = ax; }
+    else if (p.toward && pos[p.toward]) { const m = d.parts.find(z => z.k === p.toward), [mx, my] = pos[p.toward], ma = m.anchor || [0, 0]; tx = mx + ma[0]; ty = my + ma[1]; }
+    else return "";
+    const dx = tx - ax, dy = ty - ay, L = Math.hypot(dx, dy); if (L < 46) return "";
+    const ux = dx / L, uy = dy / L, hw = (p.w || p.len || 30) / 2, hh = (p.h || 30) / 2;
+    const r0 = Math.min(Math.abs(ux) > .001 ? hw / Math.abs(ux) : 1e9, Math.abs(uy) > .001 ? hh / Math.abs(uy) : 1e9) + 6, len = Math.min(34, L * .35);
+    if (r0 + len > L - 8) return "";
+    const x1 = ax + ux * r0, y1 = ay + uy * r0, x2 = x1 + ux * len, y2 = y1 + uy * len;
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${DK.arrow}" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#m-go)"/>`;
+  }).join("");
+}
+/* Drafting title block in the sheet's bottom-right corner */
+function diagTitleBlock(d, vb) {
+  const W = 300, H = 46, x = d.vb[0] - W - 14, y = d.vb[1] - H - 12;
+  return `<g class="dtb" font-family="IBM Plex Mono,monospace" fill="${DK.fine}"><rect x="${x}" y="${y}" width="${W}" height="${H}" fill="${DSHEET}" stroke="${DK.center}" stroke-width=".8"/><line x1="${x}" y1="${y + 22}" x2="${x + W}" y2="${y + 22}" stroke="${DK.center}" stroke-width=".6"/><line x1="${x + 86}" y1="${y}" x2="${x + 86}" y2="${y + H}" stroke="${DK.center}" stroke-width=".6"/>
+    <text x="${x + 8}" y="${y + 15}" font-size="10.5" fill="${DK.ink}">${esc(d.fig || "")}</text><text x="${x + 94}" y="${y + 15}" font-size="10.5" fill="${DK.ink}">${esc(String(d.title).toUpperCase().slice(0, 30))}</text>
+    <text x="${x + 8}" y="${y + 37}" font-size="9">REVORA</text><text x="${x + 94}" y="${y + 37}" font-size="9">${esc((d.blk ? "CMSNL " + d.blk + " · " : "") + "NOT TO SCALE")}</text></g>`;
 }
 function diagStatic(d, w) { // thumbnail / export / print (no interaction)
   return diagSvg(d, { view: d.thumb || "exploded", nums: !!w }).replace('class="dsvg"', `class="dsvg thumb"`);
 }
 
 /* ---------- page: catalogue + viewer ---------- */
-const DIAG_SYSTEMS = ["Engine", "Carburetors", "Chassis", "Brakes", "Electrical"];
+const DIAG_SYSTEMS = ["Engine", "Fuel & air", "Electrical", "Brakes", "Chassis", "Body"];
+const diagFitsB = d => !d.models || /GS750B|All 1977|^GS750$/.test(d.models);
+let DIAG_ONLY_B = true;
 VIEWS.diagrams = {
   render() {
     const d = R.diag && diagById(R.diag);
     if (!d) return `${pageHead("diagrams")}
-      ${DIAG_SYSTEMS.map(sys => { const list = DIAGRAMS.filter(x => x.system === sys); if (!list.length) return ""; return `<section class="stack"><h2 class="sec left">${esc(sys)}</h2><div class="dgrid">${list.map(x => `<button class="dcard" data-diag="${x.id}"><div class="dthumb">${diagStatic(x)}</div><div class="dmeta"><span class="mono faint">${esc(x.fig)}</span><b>${esc(x.title)}</b><small>${esc(x.kinds.join(" · "))}${x.steps ? ` · ${x.steps.length} steps` : ""}</small>${verPill(x.verify)}</div></button>`).join("")}</div></section>`; }).join("")}
-      <section class="stack"><h2 class="sec left">Not drawn yet</h2><div class="tcard"><ul class="dpend">${DIAG_PENDING.map(([t, w]) => `<li><b>${esc(t)}</b><span>${esc(w)}</span></li>`).join("")}</ul></div></section>
+      <div class="row dfilter"><span class="muted">${DIAGRAMS.length} diagrams, one for every page of the CMSNL catalogue.</span><span class="spacer"></span><div class="seg"><button class="${DIAG_ONLY_B ? "on" : ""}" data-donly="1">Fits the GS750B</button><button class="${DIAG_ONLY_B ? "" : "on"}" data-donly="0">All models</button></div></div>
+      ${DIAG_SYSTEMS.map(sys => { const list = DIAGRAMS.filter(x => x.system === sys && (!DIAG_ONLY_B || diagFitsB(x))).sort((a, b) => (a.fig || "").localeCompare(b.fig || "")); if (!list.length) return ""; return `<section class="stack"><h2 class="sec left">${esc(sys)} <span class="faint" style="font-weight:500">(${list.length})</span></h2><div class="dgrid">${list.map(x => `<button class="dcard" data-diag="${x.id}"><div class="dthumb">${diagStatic(x)}</div><div class="dmeta"><span class="mono faint">${esc(x.fig || "")}${x.blk ? " · " + esc(x.blk) : ""}</span><b>${esc(x.title)}</b><small>${x.parts.length} parts${x.models && !/^All/.test(x.models) ? " · " + esc(x.models) : ""}${x.steps ? ` · ${x.steps.length} steps` : ""}</small>${x.gen ? `<span class="vpill ${x.layoutMatched ? "v-names" : "v-schematic"}">${x.layoutMatched ? "Layout matched" : "Catalogue parts"}</span>` : verPill(x.verify)}</div></button>`).join("")}</div></section>`; }).join("")}
+      ${CMS_PICTURE_ONLY.length ? `<section class="stack"><h2 class="sec left">Picture only on CMSNL</h2><div class="tcard"><ul class="dpend">${CMS_PICTURE_ONLY.map(p => `<li><b>${esc(p.title)}</b><span>${esc(p.models)}. CMSNL shows the drawing but no parts list, so there's nothing to number yet. <a href="${esc(p.url)}" target="_blank" rel="noopener">Open on CMSNL</a></span></li>`).join("")}</ul></div></section>` : ""}
       <details class="panel"><summary><b>How to add a new technical diagram</b></summary>${diagHowTo()}</details>`;
     if (DV.id !== d.id) { const v0 = diagViews(d)[0] || "exploded"; Object.assign(DV, { id: d.id, view: v0, sel: null, hidden: new Set(), step: null, vb: null, playing: false, pos: diagLayout(d, v0) }); }
     const st = meta().diagSteps?.[d.id] || {};
@@ -66,6 +98,7 @@ VIEWS.diagrams = {
       <aside class="dside">${diagSideHtml(d)}</aside></div>`;
   },
   bind(root) {
+    $$("[data-donly]", root).forEach(b => b.onclick = () => { DIAG_ONLY_B = b.dataset.donly === "1"; render(true); });
     $$("[data-diag]", root).forEach(b => b.onclick = () => { R.diag = b.dataset.diag; DV.id = null; location.hash = "diagram-" + R.diag; render(true); window.scrollTo(0, 0); });
     $$("[data-diagback]", root).forEach(b => b.onclick = () => { R.diag = null; DV.id = null; DV.playing = false; location.hash = "diagrams"; render(true); });
     const d = R.diag && diagById(R.diag); if (!d) return; bindTables(root); diagBindStage(d);
@@ -139,7 +172,7 @@ function diagFitVB(svg, d) { try { const g = svg.querySelector(".dall"), hid = [
 function diagZoom(d, how) { if (how === "fit") DV.refit = true; else { const k = how === "in" ? .8 : 1.25, cx = DV.vb[0] + DV.vb[2] / 2, cy = DV.vb[1] + DV.vb[3] / 2; DV.vb = [cx - DV.vb[2] * k / 2, cy - DV.vb[3] * k / 2, DV.vb[2] * k, DV.vb[3] * k]; } diagRedraw(d); }
 function diagAnimate(d) { if (!DV.playing) return; const svg = $("#dstage svg"); if (svg && d.anim) d.anim(svg, performance.now() / 1000); requestAnimationFrame(() => diagAnimate(d)); }
 function diagExport(d) { return diagSvg(d, { view: DV.view, pos: DV.pos, nums: DV.nums, labels: true, status: DV.status, hidden: DV.hidden }).replace("<svg ", `<svg width="${d.vb[0] * 2}" height="${d.vb[1] * 2}" `).replace("</svg>", `<text x="12" y="${d.vb[1] - 12}" font-family="Arial" font-size="11" fill="#55595e">${esc(d.fig + " " + d.title)} · ${esc(VERIFY_LABEL[d.verify][0])} · Source: ${esc(d.source.label)}</text></svg>`); }
-function diagPng(d) { const img = new Image(), url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(diagExport(d)); img.onload = () => { const c = document.createElement("canvas"); c.width = d.vb[0] * 2; c.height = d.vb[1] * 2; const g = c.getContext("2d"); g.fillStyle = "#fbfaf7"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height); c.toBlob(b => b && b.arrayBuffer().then(buf => saveFile(`${d.id}.png`, new Uint8Array(buf), "image/png"))); }; img.src = url; }
+function diagPng(d) { const img = new Image(), url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(diagExport(d)); img.onload = () => { const c = document.createElement("canvas"); c.width = d.vb[0] * 2; c.height = d.vb[1] * 2; const g = c.getContext("2d"); g.fillStyle = DSHEET; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height); c.toBlob(b => b && b.arrayBuffer().then(buf => saveFile(`${d.id}.png`, new Uint8Array(buf), "image/png"))); }; img.src = url; }
 
 /* Callout label: the catalogue ref on catalogue-backed diagrams (letters for tools and non-catalogue items), else the item number. */
 function diagLabel(d, p) {

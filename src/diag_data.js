@@ -63,7 +63,7 @@ function seqSteps(d) {
       { k: "boot", ref: "12", name: "Boot", short: "Boot", len: 76, z: 4, e: [60, 390], a: at(344), co: [0, -50], ca: [-10, -78],
         draw: () => bellowsH(76, 22, 27, 10) },
       { k: "stopper", ref: "9", name: "Oil seal stopper ring", short: "Stopper ring", len: 3, z: 5, e: [175, 390], a: at(424), co: [-10, -52], ca: [-34, 86],
-        draw: () => dRect(0, -27, 3, 54, mat("spring"), .5, .8) + `<rect x="-.5" y="-3" width="4" height="6" fill="#fbfaf7"/>` },
+        draw: () => dRect(0, -27, 3, 54, mat("spring"), .5, .8) + `<rect x="-.5" y="-3" width="4" height="6" fill="${DSHEET}"/>` },
       { k: "seal", ref: "8", name: "Oil seal", short: "Oil seal", len: 12, z: 5, e: [210, 390], a: at(428), co: [0, -54], ca: [-4, 96], part: "INV-0043", note: "Always fit new seals. Drive in square with a seal driver.",
         draw: () => dRect(0, -28, 12, 56, mat("rubber"), 2) + dLine(3.5, -26, 3.5, 26, 1.2, "#9aa1a6") + dHidden("M0,-18 H12 M0,18 H12") },
       { k: "spacer", ref: "10", name: "Oil seal spacer", short: "Seal spacer", len: 5, z: 5, e: [250, 390], a: at(440), co: [6, -52], ca: [22, 96],
@@ -174,7 +174,7 @@ function seqSteps(d) {
   const at = (x, y = 0) => [X + x, Y + y];
   const hub = () => {
     const top = "M0,-26 L0,-48 L28,-48 L28,-72 L42,-72 L42,-46 L218,-46 L218,-72 L232,-72 L232,-60 L260,-60 L260,-26 L232,-26 L232,-20 L28,-20 L28,-26 Z";
-    return secPath(top, "h-alu") + mirY(secPath(top, "h-alu")) + [35, 225].map(x => `<circle cx="${x}" cy="-64" r="2.6" fill="#fbfaf7" stroke="${DK.ink}" stroke-width=".7"/><circle cx="${x}" cy="64" r="2.6" fill="#fbfaf7" stroke="${DK.ink}" stroke-width=".7"/>`).join("") + axisLine(-8, 268);
+    return secPath(top, "h-alu") + mirY(secPath(top, "h-alu")) + [35, 225].map(x => `<circle cx="${x}" cy="-64" r="2.6" fill="${DSHEET}" stroke="${DK.ink}" stroke-width=".7"/><circle cx="${x}" cy="64" r="2.6" fill="${DSHEET}" stroke="${DK.ink}" stroke-width=".7"/>`).join("") + axisLine(-8, 268);
   };
   DIAGRAMS.push({
     id: "DG-CH-02", fig: "Fig. CH-02", title: "Front wheel: axle, bearings, spacers and seals", system: "Chassis", kinds: ["exploded", "assembled", "cross-section", "step-by-step"],
@@ -184,7 +184,7 @@ function seqSteps(d) {
     notes: "Names and refs come from the parts diagram. The hub section is simplified, sizes aren't measured, and only one disc is drawn. Check which side the disc and the speedometer gearbox sit on your hub. Ref 8 (spacer 15×22×30) and ref 9 (washer) are listed but their exact positions weren't confirmed, so ref 8 isn't drawn and ref 9 is drawn at the axle nut.",
     parts: [
       { k: "axle", ref: "4", name: "Front axle", short: "Axle", len: 500, z: 1, e: [60, 80], a: at(0), co: [0, -40], ca: [-150, -170], part: "INV-0024", note: "Roll it on a flat surface or check on V-blocks for bend: " + VFSM + ".",
-        draw: () => dRect(0, -17, 10, 34, mat("steel"), 1.5) + tubeH(490, 24, "steel", 10) + threadH(470, 30, 24, 2.6) + dCircle(486, 0, 2, "#fbfaf7", .6) },
+        draw: () => dRect(0, -17, 10, 34, mat("steel"), 1.5) + tubeH(490, 24, "steel", 10) + threadH(470, 30, 24, 2.6) + dCircle(486, 0, 2, DSHEET, .6) },
       { k: "gear", ref: "12", name: "Speedometer gearbox", short: "Speedo gearbox", len: 60, z: 3, e: [40, 330], a: at(70), co: [0, -70], ca: [-60, -120], note: "Check the drive tangs engage the hub and the gears turn freely.",
         draw: () => ringSec(0, 60, 22, 42, "h-alu") + ringSec(6, 48, 12, 18, "h-steel") + [12, 22, 32, 42].map(x => dLine(x, -22, x + 4, -18, .6) + dLine(x, 22, x + 4, 18, .6)).join("") },
       { k: "gseal", ref: "11-2", name: "Dust seal (speedometer gearbox)", short: "Dust seal", len: 7, z: 4, e: [125, 330], a: at(132), co: [0, -60], ca: [-30, -150], part: "INV-0024",
@@ -244,7 +244,7 @@ function seqSteps(d) {
     notes: "This is a reference for where and how to check, not a drawing of the GS750 disc. Mounting holes aren't drawn because the count wasn't verified. Minimum thickness and maximum runout: " + VFSM + ". Some discs also have a minimum thickness stamped on them.",
     parts: [
       { k: "disc", name: "Brake disc (face view)", short: "Disc", z: 0, e: C, anchor: [0, -R], co: [-120, -6], part: "INV-0026",
-        draw: () => `<circle r="${R}" fill="url(#gH-steel)" stroke="${DK.ink}" stroke-width="1.2"/><circle r="105" fill="url(#gH-dark)" stroke="${DK.ink}" stroke-width="1"/><circle r="60" fill="#fbfaf7" stroke="${DK.ink}" stroke-width="1"/>` + `<circle r="${(R + 105) / 2}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="${R - 110}" opacity=".25"/>` + dCenterH(0, -R - 14, R + 14) + dCenterV(0, -R - 14, R + 14) },
+        draw: () => `<circle r="${R}" fill="url(#gH-steel)" stroke="${DK.ink}" stroke-width="1.2"/><circle r="105" fill="url(#gH-dark)" stroke="${DK.ink}" stroke-width="1"/><circle r="60" fill="${DSHEET}" stroke="${DK.ink}" stroke-width="1"/>` + `<circle r="${(R + 105) / 2}" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="${R - 110}" opacity=".25"/>` + dCenterH(0, -R - 14, R + 14) + dCenterV(0, -R - 14, R + 14) },
       { k: "points", name: "Thickness measuring points", short: "Measure here", z: 3, e: C, anchor: [ptsXY[1][0], ptsXY[1][1]], co: [90, -40], note: "Measure at several points around the pad track, in the middle of the swept area. Use the smallest reading.",
         draw: () => ptsXY.map(([x, y], i) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="#fff" stroke="#2b6f9a" stroke-width="1.6"/>` + dLine(x - 11, y, x + 11, y, .9, "#2b6f9a") + dLine(x, y - 11, x, y + 11, .9, "#2b6f9a") + dNote(x + (x >= 0 ? 12 : -12), y - 9, "T" + (i + 1), x >= 0 ? "start" : "end", 10)).join("") },
       { k: "scoring", name: "Look for: grooves and scoring", short: "Grooves", z: 2, e: C, anchor: [-140, 60], co: [-60, 120], note: "Deep grooves you can catch a fingernail in point to worn-out pads or grit. Measure in the grooves.",

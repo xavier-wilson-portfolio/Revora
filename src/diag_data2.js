@@ -60,7 +60,7 @@ const ringShape = (r1, r2, fill, cx = 0, cy = 0, sw = 1.1) => `<path d="${ringPa
 (() => {
   const CX = 500, CY = 690, T = 60, L = 300;
   const pinY = CY - T - L; // assembled piston pin centre
-  const rings = gap => [0, gap, gap * 2 + 2].map((y, i) => dRect(-78, y, 156, i === 2 ? 5 : 3, mat(i === 2 ? "dark" : "spring"), .5, .7) + (i === 2 ? Array.from({ length: 9 }, (_, j) => dLine(-60 + j * 15, y + 1, -60 + j * 15, y + 4, .6, "#fbfaf7")).join("") : "") + `<rect x="${-2 + (i - 1) * 30}" y="${y - .5}" width="3" height="${i === 2 ? 6 : 4}" fill="#fbfaf7"/>`).join("");
+  const rings = gap => [0, gap, gap * 2 + 2].map((y, i) => dRect(-78, y, 156, i === 2 ? 5 : 3, mat(i === 2 ? "dark" : "spring"), .5, .7) + (i === 2 ? Array.from({ length: 9 }, (_, j) => dLine(-60 + j * 15, y + 1, -60 + j * 15, y + 4, .6, DSHEET)).join("") : "") + `<rect x="${-2 + (i - 1) * 30}" y="${y - .5}" width="3" height="${i === 2 ? 6 : 4}" fill="${DSHEET}"/>`).join("");
   DIAGRAMS.push({
     id: "DG-EN-02", fig: "Fig. EN-02", title: "Crankshaft, connecting rod and piston (one cylinder)", system: "Engine", kinds: ["exploded", "assembled", "animation"],
     vb: [1000, 870], assembly: "One cylinder seen along the crank axis: piston and rings, pin and circlips, one-piece rod, big-end bearing and thrust washers, crank throw.",
@@ -158,8 +158,8 @@ const ringShape = (r1, r2, fill, cx = 0, cy = 0, sw = 1.1) => `<path d="${ringPa
   const B = [560, 400];
   const at = (x, y) => [B[0] + x, B[1] + y];
   const body = () => secPath("M-46,-160 H46 V-40 H110 V80 H72 V96 H-72 V80 H-110 V-40 H-46 Z", "h-alu")
-    + `<path d="M-32,-160 H32 V-24 A40,40 0 1,1 -32,-24 Z" fill="#fbfaf7" stroke="${DK.ink}" stroke-width="1"/>`
-    + [[-7, 38, 14, 58], [33, 40, 12, 56], [-47, 52, 12, 44], [70, 36, 40, 8]].map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fbfaf7" stroke="${DK.ink}" stroke-width=".8"/>`).join("")
+    + `<path d="M-32,-160 H32 V-24 A40,40 0 1,1 -32,-24 Z" fill="${DSHEET}" stroke="${DK.ink}" stroke-width="1"/>`
+    + [[-7, 38, 14, 58], [33, 40, 12, 56], [-47, 52, 12, 44], [70, 36, 40, 8]].map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${DSHEET}" stroke="${DK.ink}" stroke-width=".8"/>`).join("")
     + dCenterH(0, -60, 60) + dCenterV(0, -170, 105);
   DIAGRAMS.push({
     id: "DG-FU-01", fig: "Fig. FU-01", title: "Carburetor (one of four), slide type", system: "Carburetors", kinds: ["exploded", "assembled", "cutaway", "animation"],
@@ -226,7 +226,7 @@ const ringShape = (r1, r2, fill, cx = 0, cy = 0, sw = 1.1) => `<path d="${ringPa
     lamp: `<circle r="13" fill="none" stroke="${DK.ink}" stroke-width="1.4"/><path d="M-9,-9 L9,9 M9,-9 L-9,9" stroke="${DK.ink}" stroke-width="1.2"/>`,
   };
   const P = { gen: [40, 70], rect: [260, 70], bat: [500, 70], relay: [740, 70], motor: [980, 70], reg: [260, 250], key: [500, 250], fuse: [740, 250], sw: [980, 250], points: [260, 430], coil: [500, 430], plug: [740, 430], lamp: [980, 430] };
-  const wire = (pts, lbl, lx, ly, cls = "", heavy) => `<polyline class="flow ${cls}" points="${pts.map(p => p.join(",")).join(" ")}" fill="none" stroke="${heavy ? "#233746" : "#3f6f8c"}" stroke-width="${heavy ? 3.2 : 1.8}" stroke-dasharray="7 6" stroke-linejoin="round"/>` + (lbl ? dNote(lx, ly, lbl, "middle", 10).replace("<text ", '<text paint-order="stroke" stroke="#fbfaf7" stroke-width="4" ') : "");
+  const wire = (pts, lbl, lx, ly, cls = "", heavy) => `<polyline class="flow ${cls}" points="${pts.map(p => p.join(",")).join(" ")}" fill="none" stroke="${heavy ? "#8cc0de" : "#5d93b3"}" stroke-width="${heavy ? 3.2 : 1.8}" stroke-dasharray="7 6" stroke-linejoin="round"/>` + (lbl ? dNote(lx, ly, lbl, "middle", 10).replace("<text ", `<text paint-order="stroke" stroke="${DSHEET}" stroke-width="4" `) : "");
   const lines = () => [
     wire([[210, 105], [260, 105]], "AC", 235, 98),
     wire([[430, 105], [500, 105]], "DC charge", 465, 98),
