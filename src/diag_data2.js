@@ -226,7 +226,7 @@ const ringShape = (r1, r2, fill, cx = 0, cy = 0, sw = 1.1) => `<path d="${ringPa
     lamp: `<circle r="13" fill="none" stroke="${DK.ink}" stroke-width="1.4"/><path d="M-9,-9 L9,9 M9,-9 L-9,9" stroke="${DK.ink}" stroke-width="1.2"/>`,
   };
   const P = { gen: [40, 70], rect: [260, 70], bat: [500, 70], relay: [740, 70], motor: [980, 70], reg: [260, 250], key: [500, 250], fuse: [740, 250], sw: [980, 250], points: [260, 430], coil: [500, 430], plug: [740, 430], lamp: [980, 430] };
-  const wire = (pts, lbl, lx, ly, cls = "", heavy) => `<polyline class="flow ${cls}" points="${pts.map(p => p.join(",")).join(" ")}" fill="none" stroke="${heavy ? "#8cc0de" : "#5d93b3"}" stroke-width="${heavy ? 3.2 : 1.8}" stroke-dasharray="7 6" stroke-linejoin="round"/>` + (lbl ? dNote(lx, ly, lbl, "middle", 10).replace("<text ", `<text paint-order="stroke" stroke="${DSHEET}" stroke-width="4" `) : "");
+  const wire = (pts, lbl, lx, ly, cls = "", heavy) => `<polyline class="flow ${cls}" points="${pts.map(p => p.join(",")).join(" ")}" fill="none" stroke="${heavy ? "#233746" : "#3f6f8c"}" stroke-width="${heavy ? 3.2 : 1.8}" stroke-dasharray="7 6" stroke-linejoin="round"/>` + (lbl ? dNote(lx, ly, lbl, "middle", 10).replace("<text ", `<text paint-order="stroke" stroke="${DSHEET}" stroke-width="4" `) : "");
   const lines = () => [
     wire([[210, 105], [260, 105]], "AC", 235, 98),
     wire([[430, 105], [500, 105]], "DC charge", 465, 98),
