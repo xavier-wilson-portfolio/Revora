@@ -25,6 +25,7 @@ boot();
 out=ROOT/'public'; out.mkdir(exist_ok=True)
 import shutil
 shutil.copytree(ROOT/'img', out/'img', dirs_exist_ok=True)
+shutil.copy(ROOT/'data'/'baseline.json', out/'baseline.json')
 (out/'artifact.html').write_text(html)  # Claude artifact version (the host adds the page skeleton)
 # local test wrapper with full document skeleton
 (out/'index.html').write_text('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light}[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body>'+html+'</body></html>')

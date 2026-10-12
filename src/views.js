@@ -10,22 +10,24 @@ const legend = items => `<div class="legend">${items.map(([c, l]) => `<span><i s
 
 /* ============ setup / empty project ============ */
 function setupPanel() {
+  // Public website (no shared database): load the workbook automatically so visitors land on the real site.
+  if (ME.mode !== "shared" && !window.__autoSeed) { window.__autoSeed = 1; setTimeout(() => loadBaseline(false, true), 0); return `<div class="ph"><div><h1>Loading the project…</h1><p>Setting up the restoration workbook in this browser.</p></div></div>`; }
   return `<div class="ph"><div><h1>Set up Revora</h1><p>The project database is empty. Load your restoration workbook to start: 93 tasks across phases A–N, 49 parts, 22 inspections, 16 quality gates, 20 pre-start safety checks, the module procedures, sources and maintenance items.</p></div></div>
   <div class="panel blue stack"><div class="row"><button class="btn pri" id="loadBase">${ic("download")} Load the restoration workbook</button><button class="btn" id="importJson">Import a JSON backup instead</button></div>
   <div id="loadProg" class="muted"></div>
   <p class="muted" style="margin:0">${ME.mode === "shared" ? "Records go into this page's shared database, so everyone you share the page with sees the same data." : "This copy is running without the shared database, so records are saved in this browser only."}</p></div>`;
 }
-async function loadBaseline(replace) {
+async function loadBaseline(replace, quiet) {
   const prog = $("#loadProg"); let data;
   try { const r = await fetch("baseline.json", { cache: "no-store" }); if (!r.ok) throw 0; data = await r.json(); }
-  catch (e) { toast("Couldn't load the workbook file. Use Import JSON backup instead.", "err"); return; }
+  catch (e) { toast("Couldn't load the workbook file. Use Import JSON backup instead.", "err"); if (quiet) render(true); return; }
   const writes = [];
   Object.entries(data).forEach(([c, rows]) => rows.forEach(rec => { if (replace || !S[c][rec.id]) writes.push({ c, rec }); }));
   if (!writes.length) { toast("Everything in the workbook is already loaded."); return; }
   prog && (prog.textContent = `Writing 0 of ${writes.length} records…`);
   await store.bulk(writes, (d, t) => { if (prog) prog.textContent = `Writing ${d} of ${t} records…`; });
-  logActivity("meta", { id: "project", name: "Project" }, null, "loaded the restoration workbook (" + writes.length + " records)");
-  toast("Loaded " + writes.length + " records from the workbook"); render(true);
+  if (!quiet) { logActivity("meta", { id: "project", name: "Project" }, null, "loaded the restoration workbook (" + writes.length + " records)"); toast("Loaded " + writes.length + " records from the workbook"); }
+  render(true);
 }
 function importJson(mode) {
   const inp = document.createElement("input"); inp.type = "file"; inp.accept = "application/json,.json";
