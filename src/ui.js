@@ -36,8 +36,9 @@ function parseHash(h) { h = (h || "").replace("#", ""); const m = h.match(/^less
 (function initRoute() {
   const saved = lsGet("gs750.route", null), fromHash = parseHash(location.hash);
   if (saved) { R.tab = saved.tab || {}; R.view = saved.view || {}; if (saved.lesson) R.lesson = saved.lesson; }
-  const target = fromHash || (saved && parseHash(saved.sec === "lesson" ? "lesson-" + saved.lesson : saved.sec));
-  if (target) { R.sec = target.sec; if (target.lesson) R.lesson = target.lesson; if (target.guide) R.guide = target.guide; if (target.diag) R.diag = target.diag; }
+  // Every visit starts on the home page: ignore the last page and any #link in the address on load.
+  void fromHash; R.sec = "home";
+  if (location.hash) try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
 })();
 function go(sec, f) {
   if (typeof sec === "string" && sec.startsWith("lesson-")) { R.lesson = sec.slice(7); sec = "lesson"; }
