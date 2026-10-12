@@ -2,7 +2,7 @@
 const CHAT = { open: false, turns: [], busy: false, ctl: null, sample: undefined, ctx: null };
 /* Public website: the mechanic talks to a small proxy that holds the API key (see ai-worker/README.md).
    Paste the worker's URL here. Leave it empty and the mechanic only works inside Claude. */
-const CHAT_API = "";
+const CHAT_API = "https://revora-worker.xavier-j-wilson101.workers.dev";
 async function chatInit() {
   try { CHAT.sample = window.claude && window.claude.use ? await window.claude.use("sample") : (CHAT_API ? apiSample : null); } catch (e) { CHAT.sample = CHAT_API ? apiSample : null; }
   document.body.classList.toggle("no-ai", !CHAT.sample);
