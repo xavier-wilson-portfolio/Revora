@@ -45,7 +45,12 @@ export default {
       headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({ model: env.MODEL || "claude-haiku-5-5", max_tokens: 800, stream: true, system: SYSTEM, messages: clean }),
     });
-    if (!up.ok || !up.body) return deny(up.status === 429 ? 429 : 502, "upstream error", h);
+    if (!up.ok || !up.body) {
+      // Pass back Anthropic's reason (never the key) so problems like "no credit" or "bad key" are easy to spot.
+      let why = ""; try { const j = await up.json(); why = (j.error && (j.error.type + ": " + j.error.message)) || ""; } catch (e) {}
+      console.log("Anthropic error", up.status, why);
+      return deny(up.status === 429 ? 429 : 502, `upstream ${up.status}${why ? " " + why : ""}`, h);
+    }
     return new Response(up.body, { status: 200, headers: { ...h, "content-type": "text/event-stream", "cache-control": "no-store" } });
   },
 };
