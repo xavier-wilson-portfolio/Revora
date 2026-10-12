@@ -92,4 +92,4 @@ const D3_FORK = {
       geom: { type: "pair", at: [[0, 0, 20], [0, 0, 48]], item: { type: "hex", af: 12, h: 8, y: 0, hole: 3.9 } } },
   ],
 };
-const D3_MODELS = { "DG-CH-01": D3_FORK };
+D3_MODELS["DG-CH-01"] = D3_FORK;

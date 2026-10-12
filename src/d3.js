@@ -33,12 +33,17 @@ function d3Shape(pts, notch) {
   }
   const s = new T.Shape(); out.forEach(([z, y], i) => i ? s.lineTo(z, y) : s.moveTo(z, y)); s.closePath(); return s;
 }
-function d3Geo(g) { // -> [{ geo, mat? }]
+function d3Geo(g) { // -> [{ geo, mat? }]; any item may carry rot: [x, y, z] (degrees) and at: [x, y, z] (mm), applied in that order
+  const out = d3Geo0(g);
+  if (g.rot || g.at || g.mat) out.forEach(x => { if (g.rot) { const e = new THREE.Euler(...g.rot.map(v => v * Math.PI / 180)); x.geo.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(e)); } if (g.at && typeof g.at[0] === "number") x.geo.translate(...g.at); if (g.mat && !x.mat) x.mat = g.mat; });
+  return out;
+}
+function d3Geo0(g) {
   const T = THREE;
   switch (g.type) {
     case "group": return g.items.flatMap(d3Geo);
     case "lathe": return [{ geo: d3Lathe(g.pts) }];
-    case "ring": return [{ geo: d3Lathe([[g.ri, 0], [g.ro, 0], [g.ro, g.h], [g.ri, g.h]], 48, 0, g.split ? Math.PI * 2 - .3 : Math.PI * 2) }];
+    case "ring": return [{ geo: d3Lathe([[g.ri, 0], [g.ro, 0], [g.ro, g.h], [g.ri, g.h]], 48, g.split ? Math.PI * 2 - .3 : Math.PI * 2) }];
     case "ringX": { const geo = d3Lathe([[g.ri, 0], [g.ro, 0], [g.ro, g.h], [g.ri, g.h]], 40); geo.rotateZ(-Math.PI / 2); return [{ geo }]; }
     case "torus": { const geo = new T.TorusGeometry(g.R, g.r, 12, 64); geo.rotateX(Math.PI / 2); return [{ geo }]; }
     case "clip": { const geo = new T.TorusGeometry(g.R, g.r, 10, 64, Math.PI * 2 - g.gap); geo.rotateX(Math.PI / 2); return [{ geo }]; }
@@ -51,7 +56,23 @@ function d3Geo(g) { // -> [{ geo, mat? }]
     case "holes": return g.y.map(y => { const geo = new T.CylinderGeometry(g.d / 2, g.d / 2, 1, 16); geo.rotateZ(Math.PI / 2); geo.translate(g.r - .3, y, 0); return { geo, mat: "black" }; });
     case "screwX": { const geo = d3Lathe([[0, -g.head], [g.headR, -g.head], [g.headR, 0], [g.r, 0], [g.r, g.len], [0, g.len]], 32); geo.rotateZ(-Math.PI / 2); return [{ geo }]; }
     case "lug": { const geo = new T.ExtrudeGeometry(d3Shape(g.zy, g.notch), { depth: g.x[1] - g.x[0], bevelEnabled: true, bevelThickness: .8, bevelSize: .8, bevelSegments: 2, curveSegments: 12 }); geo.rotateY(-Math.PI / 2); geo.translate(g.x[1], 0, 0); return [{ geo }]; }
-    case "pair": return g.at.flatMap(o => d3Geo(g.item).map(x => { x.geo = x.geo.clone(); x.geo.translate(o[0], o[1], o[2]); return x; }));
+    case "pair": case "array": return (g.at || g.pos).flatMap(o => d3Geo(g.item).map(x => { x.geo = x.geo.clone(); if (o[3] != null) x.geo.rotateY(o[3] * Math.PI / 180); x.geo.translate(o[0], o[1], o[2]); return x; }));
+    case "cyl": { const geo = new T.CylinderGeometry(g.r2 ?? g.r, g.r, g.h, g.seg || 40); geo.translate(0, g.h / 2, 0); if (g.axis === "x") geo.rotateZ(-Math.PI / 2); if (g.axis === "z") geo.rotateX(Math.PI / 2); return [{ geo }]; }
+    case "box": { const geo = T.RoundedBoxGeometry ? new T.RoundedBoxGeometry(g.size[0], g.size[1], g.size[2], 2, Math.min(g.r ?? 1.5, Math.min(...g.size) / 2 - .01)) : new T.BoxGeometry(...g.size); return [{ geo }]; }
+    case "sphere": return [{ geo: new T.SphereGeometry(g.r, 24, 16) }];
+    case "extrude": { // flat outline in the XY plane, pushed out along +Z by depth; holes: [[x, y, r]]
+      const s = new T.Shape(); g.pts.forEach(([x, y], i) => i ? s.lineTo(x, y) : s.moveTo(x, y)); s.closePath();
+      (g.holes || []).forEach(([x, y, r]) => { const h = new T.Path(); h.absarc(x, y, r, 0, Math.PI * 2, true); s.holes.push(h); });
+      const geo = new T.ExtrudeGeometry(s, { depth: g.depth, bevelEnabled: g.bevel !== 0, bevelThickness: g.bevel ?? .6, bevelSize: g.bevel ?? .6, bevelSegments: 2, curveSegments: 24 }); return [{ geo }]; }
+    case "gear": { // spur gear / sprocket around the Y axis, bottom face at y = 0
+      const s = new T.Shape(), n = g.teeth, ro = g.r, ri = g.r - (g.toothH ?? Math.max(1.5, g.r * .09));
+      for (let i = 0; i < n * 4; i++) { const a = i / (n * 4) * Math.PI * 2, rr = (i % 4 === 1 || i % 4 === 2) ? ro : ri; i ? s.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : s.moveTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+      s.closePath(); if (g.bore) { const h = new T.Path(); h.absarc(0, 0, g.bore, 0, Math.PI * 2, true); s.holes.push(h); }
+      (g.holes || []).forEach(([x, y, r]) => { const h = new T.Path(); h.absarc(x, y, r, 0, Math.PI * 2, true); s.holes.push(h); });
+      const geo = new T.ExtrudeGeometry(s, { depth: g.h, bevelEnabled: false, curveSegments: 32 }); geo.rotateX(-Math.PI / 2); return [{ geo }]; }
+    case "tube": { // hose, cable or pipe along points [[x, y, z]...]
+      const curve = new T.CatmullRomCurve3(g.pts.map(q => new T.Vector3(...q)));
+      return [{ geo: new T.TubeGeometry(curve, Math.max(40, g.pts.length * 16), g.r, 12, false) }]; }
   }
   return [];
 }
@@ -170,11 +191,20 @@ function d3Bind(root, d) {
 }
 function d3Frustum(st) { const el = st.rend.domElement, W = el.clientWidth || 800, H = el.clientHeight || 600, a = W / H, s = st.half || 400; Object.assign(st.cam, { left: -s * a, right: s * a, top: s, bottom: -s }); st.cam.updateProjectionMatrix(); }
 function d3Bounds(st) { const b = new THREE.Box3(); st.m.parts.forEach(p => { if (p.node.visible) b.expandByObject(p.node); }); return b; }
-function d3View(st, v, saved) {
-  const T = THREE, b = d3Bounds(st), c = b.getCenter(new T.Vector3()), size = b.getSize(new T.Vector3());
+function d3View(st, v) {
+  // frame the visible parts exactly: project the bounding box corners into the view and size the ortho frustum to them
+  const T = THREE; st.m.root.updateMatrixWorld(true); const b = d3Bounds(st); if (b.isEmpty()) return;
+  const c = b.getCenter(new T.Vector3());
   const dir = v === "front" ? new T.Vector3(0, .05, 1) : v === "side" ? new T.Vector3(1, .05, 0) : v === "fit" ? st.cam.position.clone().sub(st.ctl.target).normalize() : new T.Vector3(...st.model.view.dir).normalize();
-  st.half = Math.max(size.y * .56, Math.max(size.x, size.z) * .5 / ((st.rend.domElement.clientWidth || 800) / (st.rend.domElement.clientHeight || 600)), 60);
-  st.cam.zoom = 1; st.cam.position.copy(c.clone().add(dir.multiplyScalar(2000))); st.cam.up.set(0, 1, 0); st.ctl.target.copy(c); st.cam.lookAt(c); d3Frustum(st); st.ctl.update(); st.need = true; st.lbl = true;
+  st.cam.zoom = 1; st.cam.up.set(0, 1, 0); st.cam.position.copy(c.clone().add(dir.multiplyScalar(3000))); st.cam.lookAt(c); st.cam.updateMatrixWorld(true);
+  const inv = st.cam.matrixWorldInverse, lo = new T.Vector3(1e9, 1e9, 1e9), hi = new T.Vector3(-1e9, -1e9, -1e9);
+  [b.min.x, b.max.x].forEach(x => [b.min.y, b.max.y].forEach(y => [b.min.z, b.max.z].forEach(z => { const q = new T.Vector3(x, y, z).applyMatrix4(inv); lo.min(q); hi.max(q); })));
+  const el = st.rend.domElement, a = (el.clientWidth || 800) / (el.clientHeight || 600);
+  const mid = new T.Vector3((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, (lo.z + hi.z) / 2).applyMatrix4(st.cam.matrixWorld);
+  const shift = mid.clone().sub(c); st.cam.position.add(shift); st.ctl.target.copy(c.clone().add(shift));
+  // leave room for the label columns either side
+  st.half = Math.max((hi.y - lo.y) / 2 * 1.12, (hi.x - lo.x) / 2 / a * 1.45, 40);
+  d3Frustum(st); st.ctl.update(); st.need = true; st.lbl = true;
 }
 function d3Caption(st) { const cap = $("#d3cap"); if (!cap) return; const S = st.model.stages.length, i = Math.min(S - 1, Math.floor(st.T + 1e-6));
   cap.innerHTML = st.T <= 1e-3 ? `<b>Exploded</b> · ${S} assembly stages` : st.T >= S - 1e-3 ? `<b>Assembled</b>` : `<b>Stage ${i + 1} of ${S}:</b> ${esc(st.model.stages[i].t)}<small>${esc(st.model.stages[i].d)}</small>`; }
@@ -192,20 +222,21 @@ function d3Paint(st) {
 }
 function d3Select(st, id) { st.sel = id && st.sel === id ? null : id; d3Paint(st); d3Side(st); const row = id && document.querySelector(`#d3list [data-d3p="${id}"]`); if (row) row.scrollIntoView({ block: "nearest" }); }
 /* side panel: selected part + parts list (synchronised with the 3D selection) */
-function d3Pn(st, ref) { const pg = typeof CMS_PAGES !== "undefined" && CMS_PAGES[st.id]; return pg ? cmsCurrent(pg.rows, ref) : null; }
-function d3Cat(st, ref) { const pg = typeof CMS_PAGES !== "undefined" && CMS_PAGES[st.id]; return pg ? [...new Set(pg.rows.filter(r => cmsBase(r[0]) === String(ref)).map(r => r[2]))].join(" / ") : ""; }
+const d3Rows = st => (typeof CMS_PAGES !== "undefined" && CMS_PAGES[st.id] && CMS_PAGES[st.id].rows) || (typeof CMS_DATA !== "undefined" && CMS_DATA[st.model.page] && CMS_DATA[st.model.page].rows) || [];
+function d3Pn(st, ref) { return cmsCurrent(d3Rows(st), String(ref).split(/[,\s]+/)[0]); }
+function d3Cat(st, ref) { const refs = String(ref).split(/[,\s]+/); return [...new Set(d3Rows(st).filter(r => refs.includes(cmsBase(r[0]))).map(r => r[2].replace(/\s*\((NAS|MCA|ASB)\)/g, "")))].join(" / "); }
 function d3Side(st) {
   const info = $("#d3info"), list = $("#d3list"); if (!info || !list) return;
   const p = st.sel && st.m.parts.get(st.sel);
   info.innerHTML = p ? `<span class="eyebrow">Catalogue ref ${esc(p.d.ref)}</span><h2 class="vtitle">${esc(p.d.name)}</h2>
-      <dl class="kv"><dt>Suzuki part no.</dt><dd><code>${esc(fmtPn(d3Pn(st, p.d.ref)) || "—")}</code></dd><dt>Catalogue name</dt><dd>${esc(d3Cat(st, p.d.ref) || "—")}</dd><dt>Quantity</dt><dd>${p.d.count ? p.d.count + " shown per leg. " : ""}CMSNL doesn't list quantities.</dd><dt>Reference</dt><dd><a href="${esc(CMS + st.model.page + ".html")}" target="_blank" rel="noopener">CMSNL ${esc(st.model.page)}, ref ${esc(p.d.ref)}</a></dd><dt>Fits on</dt><dd>Stage ${p.d.stage || "—"}${p.d.stage ? ": " + esc(st.model.stages[p.d.stage - 1].t) : " (the base part)"}</dd></dl>
+      <dl class="kv"><dt>Suzuki part no.</dt><dd><code>${esc(fmtPn(d3Pn(st, p.d.ref)) || "—")}</code></dd><dt>Catalogue name</dt><dd>${esc(d3Cat(st, p.d.ref) || "—")}</dd><dt>Quantity</dt><dd>${p.d.count ? p.d.count + " shown. " : ""}CMSNL doesn't list quantities.</dd><dt>Reference</dt><dd><a href="${esc(CMS + st.model.page + ".html")}" target="_blank" rel="noopener">CMSNL ${esc(st.model.page)}, ref ${esc(p.d.ref)}</a></dd><dt>Fits on</dt><dd>Stage ${p.d.stage || "—"}${p.d.stage ? ": " + esc(st.model.stages[p.d.stage - 1].t) : " (the base part)"}</dd></dl>
       <div class="row"><button class="btn sm" data-d3a="iso">${st.iso === p.d.id ? "Show all parts" : "Isolate"}</button><button class="btn sm" data-d3a="hide">${st.hidden.has(p.d.id) ? "Show" : "Hide"}</button>${p.d.stage ? `<button class="btn sm" data-d3a="seat">${st.force.has(p.d.id) ? "Back to the timeline" : "Show it fitted"}</button>` : ""}<button class="btn sm" data-d3a="desel">Clear</button></div>
-      <div class="row">${askBtn(`On my 1977 GS750 front fork, tell me about the ${p.d.name} (catalogue ref ${p.d.ref}): what it does, how it comes out and goes back in, and what wear to look for.`, p.d.name)}</div>`
+      <div class="row">${askBtn(`On my 1977 GS750 (${st.model.title}), tell me about the ${p.d.name} (catalogue ref ${p.d.ref}): what it does, how it comes out and goes back in, and what wear to look for.`, p.d.name)}</div>`
     : `<span class="eyebrow">Parts viewer</span><p class="hint-text" style="text-align:left;margin:0">Click a part in the model or in the list to see its Suzuki part number, where it fits and what it's called in the catalogue.</p>`;
   $$("[data-d3a]", info).forEach(b => b.onclick = () => { const a = b.dataset.d3a, id = st.sel;
     if (a === "iso") st.iso = st.iso === id ? null : id; else if (a === "hide") { st.hidden.has(id) ? st.hidden.delete(id) : st.hidden.add(id); } else if (a === "seat") { st.force.has(id) ? st.force.delete(id) : st.force.add(id); d3Apply(st); } else if (a === "desel") st.sel = null;
     d3Paint(st); d3Side(st); });
-  const rows = st.model.parts.slice().sort((a, b) => (+a.ref || 0) - (+b.ref || 0));
+  const rows = st.model.parts.slice().sort((a, b) => (parseInt(a.ref) || 0) - (parseInt(b.ref) || 0));
   list.innerHTML = `<h3 class="vh">Parts list (${rows.length})</h3>${st.model.notModelled ? `<p class="hint-text" style="text-align:left;margin:0">${esc(st.model.notModelled)}</p>` : ""}<div class="d3rows">${rows.map(pd => `<div class="d3row ${st.sel === pd.id ? "on" : ""} ${st.hidden.has(pd.id) || (!st.opt.small && pd.small) ? "off" : ""}" data-d3p="${pd.id}"><b>${esc(pd.ref)}</b><span>${esc(pd.name)}${pd.count ? ` <small>×${pd.count}</small>` : ""}</span><code>${esc(fmtPn(d3Pn(st, pd.ref)) || "")}</code><button class="d3eye" data-d3h="${pd.id}" aria-label="${st.hidden.has(pd.id) ? "Show" : "Hide"} ${esc(pd.name)}">${ic(st.hidden.has(pd.id) ? "x" : "eye")}</button></div>`).join("")}</div>`;
   $$("[data-d3p]", list).forEach(r => r.onclick = e => { if (e.target.closest("[data-d3h]")) return; d3Select(st, r.dataset.d3p); });
   $$("[data-d3h]", list).forEach(b => b.onclick = () => { const id = b.dataset.d3h; st.hidden.has(id) ? st.hidden.delete(id) : st.hidden.add(id); d3Paint(st); d3Side(st); });
