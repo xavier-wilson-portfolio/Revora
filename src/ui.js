@@ -312,7 +312,7 @@ function renderDrawer(keepScroll) {
   drawerState.base = clone(S[c][r.id] || r);
   host.innerHTML = `<div class="drawer-bg"></div><aside class="drawer" role="dialog" aria-label="${esc(sc.label)} ${esc(r.id)}">
     <header><div style="min-width:0;flex:1"><div class="row"><span class="mono muted">${esc(r.id)}</span><span class="tag">${esc(sc.label)}</span>${extra.head || ""}${r.archived ? pill("gray", "Archived") : ""}</div>
-    <h2>${isNew ? "New " + esc(sc.label.toLowerCase()) : esc(titleOf(c, r))}</h2></div><button class="x" data-close aria-label="Close">${ic("x")}</button></header>
+    <h2>${isNew ? "New " + esc(sc.label.toLowerCase()) : esc(titleOf(c, r))}</h2>${!isNew ? askRecord(c, S[c][r.id] || r, "btn sm ask dr-ask") : ""}</div><button class="x" data-close aria-label="Close">${ic("x")}</button></header>
     <div class="body">
       <div class="banner warn stale" hidden><div class="grow">Someone else changed this record while you were editing. Saving will overwrite their change.</div><button class="btn sm" data-reload>Load their version</button></div>
       ${extra.top || ""}
