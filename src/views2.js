@@ -93,6 +93,14 @@ VIEWS.help = { render() { return `<div class="ph"><div><h1>Help & workflow</h1><
 /* ============ DRAWER EXTRAS ============ */
 const DRAWER_EXTRA = {};
 const busyDraft = () => { if (drawerState.dirty) { toast("Save or discard your edits first.", "err"); return true; } return false; };
+/* Suzuki part numbers for every catalogue item that belongs to this record, from the diagrams' CMSNL data. */
+function partCatalogueHtml(id) {
+  if (typeof DIAGRAMS === "undefined") return "";
+  const rows = []; DIAGRAMS.forEach(d => d.cms && d.parts.forEach(x => { if (x.part === id && x.pn) rows.push({ d, x }); }));
+  if (!rows.length) return "";
+  return `<div><h2 class="sec left">Suzuki part numbers</h2><div class="linklist">${rows.map(({ d, x }) => `<button type="button" data-godiag="${d.id}|${x.k}"><span class="mono faint">ref ${esc(String(x.ref))}</span><span class="grow">${esc(x.name)}<small class="faint" style="display:block">${esc(d.title)}</small></span><code>${esc(x.pn.map(fmtPn).join(", "))}</code></button>`).join("")}</div><p class="hint-text" style="text-align:left;margin:4px 0 0">From the CMSNL catalogue for the GS750B 1977 USA. Current numbers after Suzuki's replacements.</p></div>`;
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-godiag]"); if (!b) return; const [id, k] = b.dataset.godiag.split("|"); closeDrawer(); DV.id = null; go("diagram-" + id); DV.sel = k; render(true); });
 DRAWER_EXTRA.parts = (p, isNew) => {
   if (isNew) return { head: "" };
   const ts = tasksForPart(p.id), ins = partInspections(p.id), purs = purchasesForPart(p.id), ds = docsFor("partId", p.id), kids = sorted("parts").filter(x => x.parent === p.id);
@@ -104,6 +112,7 @@ DRAWER_EXTRA.parts = (p, isNew) => {
     top: `${PART_IMG[p.id] ? `<div style="text-align:center;background:var(--stage-bg);border-radius:14px;padding:6px"><img src="${PART_IMG[p.id]}" alt="" style="max-height:200px"></div>` : ""}
     ${g3 ? `<button type="button" class="btn" id="q3d">${ic("cube")} See it in 3D</button>` : ""}
     ${askBtn(`Tell me about the ${p.name} on a 1977 GS750: what it does, what usually wears out, and how to inspect it.`, p.name, "btn ask")}
+    ${partCatalogueHtml(p.id)}
     <div class="panel blue stack" style="padding:12px">
       <div class="row"><span class="sw" style="background:${COL[color]}"></span><b>${esc(COLOR_LABEL[color])}</b><span class="muted">· inspection: ${esc(insState)}</span></div>
       ${ME.canWrite ? `<div class="row"><label for="qStatus" class="muted">Change status</label><select id="qStatus">${PART_STATUS.map(s => `<option ${s === S.parts[p.id].status ? "selected" : ""}>${s}</option>`).join("")}</select>

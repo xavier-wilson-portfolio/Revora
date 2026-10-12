@@ -1,7 +1,7 @@
 /* ============ 2D technical diagrams: data (chassis + brakes) ============
    Every diagram is drawn from the kit in diag_draw.js. Names and reference numbers come from the CMSNL
    parts list for the GS750 (B) 1977 USA (E03) unless a part says otherwise. Proportions are drawn, not measured.
-   No torque values, clearances, part numbers or fluid quantities appear anywhere: those come from the factory manual. */
+   No torque values, clearances or fluid quantities appear anywhere: those come from the factory manual. Suzuki part numbers come from diag_cms.js (CMSNL). */
 const CMS = "https://www.cmsnl.com/suzuki-gs750b-1977-b-usa-e03_model16048/partslist/";
 const VFSM = "VERIFY IN FACTORY SERVICE MANUAL";
 const gT = (t, s) => `<g transform="${t}">${s}</g>`;
@@ -38,14 +38,20 @@ function seqSteps(d) {
     vb: [1200, 620], assembly: "One front fork leg (right leg shown). Inner tube, outer tube, damper rod, springs, seal stack and axle holder.",
     source: { label: "CMSNL GS750 (B) 1977 USA, Front fork", url: CMS }, compat: "GS750 (B) 1977 USA (E03). Check other years and variants before using.",
     verify: "names", inv: ["INV-0020"], tasks: ["F-004", "I-001", "J-002"], tools: ["Fork seal driver (size " + VFSM + ")", "Hex bit for the bottom bolt", "Measuring cylinder for fork oil", "Soft-jaw vise"], supplies: ["Fork oil (grade and amount: " + VFSM + ")", "New oil seals", "New bottom-bolt gasket", "New cap O-rings", "Thread locker if the manual calls for it"],
-    notes: "Item names and reference numbers come from the parts diagram. Parts are drawn in proportion by eye, not measured. Diagram refs 5 (upper spring), 13 (ring), 22 to 25 (screw, gasket, stud, washer) are not drawn as separate items because their exact positions couldn't be confirmed from the list.",
+    notes: "Every item and reference number matches the CMSNL front fork page and its picture. Parts are drawn in proportion by eye, not measured.",
     parts: [
       { k: "cap", ref: "14", name: "Inner tube cap", short: "Cap", len: 25, z: 5, e: [60, 95], a: at(0), co: [-6, -48], ca: [-30, -70], part: "INV-0020",
         draw: () => dRect(0, -21, 9, 42, mat("chrome"), 2) + dRect(9, -17, 16, 34, mat("chrome")) + threadH(9, 16, 34, 2.4) + dLine(2, -21, 2, 21, .5, "rgba(255,255,255,.8)") },
       { k: "oring", ref: "15", name: "O-ring (cap)", short: "O-ring", len: 4, z: 6, e: [112, 95], a: at(10), co: [0, -48], ca: [6, 70], verify: "names", note: "Replace on reassembly.",
         draw: () => oringH(4, 36) },
-      { k: "spring", ref: "26", name: "Fork spring", short: "Fork spring", len: 460, z: 1, e: [160, 95], a: at(30), co: [0, -48], ca: [0, -80], part: "INV-0020", note: "Measure free length against the manual's limit: " + VFSM + ".",
-        draw: () => springH(460, 26, 30, 3) },
+      { k: "uspring", ref: "5", name: "Upper fork spring", short: "Upper spring", len: 40, z: 1, e: [135, 95], a: at(26), co: [0, -48], ca: [-4, -80], part: "INV-0020", note: "Short spring that sits on top of the main spring, under the cap.",
+        draw: () => springH(40, 24, 4, 2.6) },
+      { k: "swasher", ref: "25", name: "Washer (between the springs)", short: "Spring washer", len: 3, z: 2, e: [192, 95], a: at(67), co: [0, -48], ca: [10, 74],
+        draw: () => washerH(3, 28, "steel") },
+      { k: "spring", ref: "26", name: "Fork spring", short: "Fork spring", len: 420, z: 1, e: [215, 95], a: at(70), co: [0, -48], ca: [0, -80], part: "INV-0020", note: "Measure free length against the manual's limit: " + VFSM + ".",
+        draw: () => springH(420, 26, 27, 3) },
+      { k: "dring", ref: "13", name: "Ring (damper rod head)", short: "Damper ring", len: 4, z: 4, e: [655, 95], a: at(502), co: [0, -48], ca: [4, 74], note: "Sits in the groove on the damper rod head. Check it for wear when the fork is apart.",
+        draw: () => dRect(0, -16, 4, 32, mat("dark"), 1, .8) },
       { k: "inner", ref: "1", name: "Inner tube", short: "Inner tube", len: 680, z: 3, phantom: 1, e: [60, 230], a: at(8), co: [0, -40], ca: [-120, -80], part: "INV-0020", note: "Check for pitting in the seal area and measure runout on V-blocks: " + VFSM + ".",
         draw: () => tubeH(680, 36, "chrome") + dHidden("M5,-13 H676 M5,13 H676") + dLine(668, -18, 668, 18, .6) + axisLine(-6, 686) },
       { k: "rebound", ref: "7", name: "Rebound spring", short: "Rebound spring", len: 50, z: 2, e: [690, 95], a: at(513), co: [0, -48], ca: [-6, 72],
@@ -62,8 +68,16 @@ function seqSteps(d) {
         draw: () => dRect(0, -28, 12, 56, mat("rubber"), 2) + dLine(3.5, -26, 3.5, 26, 1.2, "#9aa1a6") + dHidden("M0,-18 H12 M0,18 H12") },
       { k: "spacer", ref: "10", name: "Oil seal spacer", short: "Seal spacer", len: 5, z: 5, e: [250, 390], a: at(440), co: [6, -52], ca: [22, 96],
         draw: () => washerH(5, 54, "steel") },
+      { k: "spacer2", ref: "11", name: "Oil seal spacer (second)", short: "Seal spacer", len: 3, z: 5, e: [272, 390], a: at(445), co: [4, -52], ca: [40, 80], note: "The catalogue lists two seal spacers (10 and 11). Check which your fork has when you take it apart.",
+        draw: () => washerH(3, 54, "steel") },
       { k: "outer", ref: "2", name: "Outer tube", short: "Outer tube", len: 440, z: 3, phantom: 1, e: [300, 390], a: at(420), co: [0, -48], ca: [60, -95], part: "INV-0020", note: "Check the seal bore, the axle lug and the studs. Look for cracks around the lug.",
-        draw: () => dPath("M0,-29 L400,-26 L400,-30 L440,-30 L440,34 L432,34 A12,12 0 0,0 408,34 L400,34 L400,26 L0,29 Z", mat("alu")) + dLine(4, -20, 396, -18, .6, "rgba(255,255,255,.8)") + dHidden("M16,-19 H430 M16,19 H430") + dLine(16, -29, 16, 29, .6) + dRect(394, 34, 4, 34, mat("steel")) + dRect(442, 34, 4, 34, mat("steel")) + threadV(48, 18, 4, 2.2).replace(/x1="(-?[\d.]+)"/g, (m, v) => `x1="${+v + 396}"`).replace(/x2="(-?[\d.]+)"/g, (m, v) => `x2="${+v + 396}"`) + axisLine(-6, 448) },
+        draw: () => dPath("M0,-29 L400,-26 L400,-30 L440,-30 L440,34 L432,34 A12,12 0 0,0 408,34 L400,34 L400,26 L0,29 Z", mat("alu")) + dLine(4, -20, 396, -18, .6, "rgba(255,255,255,.8)") + dHidden("M16,-19 H430 M16,19 H430") + dLine(16, -29, 16, 29, .6) + axisLine(-6, 448) },
+      { k: "drain", ref: "22", name: "Drain screw", short: "Drain screw", z: 7, e: [700, 318], a: at(800, -41), anchor: [0, 6], co: [26, -14], ca: [-34, -40], note: "Drain the fork oil here. Use a new gasket when you refit it.",
+        draw: () => boltV(9, 5, 8, 4) },
+      { k: "dgasket", ref: "23", name: "Gasket (drain screw)", short: "Drain gasket", z: 8, e: [700, 342], a: at(800, -36), anchor: [0, 1], co: [26, 4], ca: [44, -18],
+        draw: () => washerV(1.6, 11, "brass") },
+      { k: "studs", ref: "24", name: "Studs (axle holder)", short: "Studs", z: 4, e: [600, 432], a: at(840, 34), anchor: [24, 17], co: [60, -6], ca: [56, -52], note: "Screwed into the outer tube. Check the threads before refitting the holder.",
+        draw: () => [-24, 24].map(x => gT(`translate(${x},0)`, dRect(-2, 0, 4, 34, mat("steel", true)) + threadV(14, 18, 4, 2.2))).join("") },
       { k: "gasket", ref: "17", name: "Gasket (bottom bolt)", short: "Gasket", len: 3, z: 6, e: [775, 390], a: at(860), co: [0, -50], ca: [8, -74], note: "Use a new gasket.",
         draw: () => washerH(3, 18, "brass") },
       { k: "bolt", ref: "16", name: "Bolt (damper rod)", short: "Bottom bolt", len: 0, z: 6, e: [860, 390], a: at(875), anchor: [-6, 0], co: [0, -50], ca: [30, -60], note: "Holds the damper rod. Thread locker and torque: " + VFSM + ".",
@@ -79,14 +93,14 @@ function seqSteps(d) {
     ],
     assembledExtra: () => dCenterH(Y, X - 30, X + 900),
     seq: [
-      { t: "Rebound spring onto the damper rod", add: ["rebound", "damper"], d: "Slide the rebound spring onto the damper rod (the parts list calls it the cylinder) so it sits under the piston head." },
+      { t: "Rebound spring onto the damper rod", add: ["rebound", "damper", "dring"], d: "Slide the rebound spring onto the damper rod (the parts list calls it the cylinder) so it sits under the piston head." },
       { t: "Damper rod into the inner tube", add: ["inner", "oillock"], d: "Drop the damper rod into the inner tube until it comes out of the bottom. Fit the oil lock piece over the end of the rod." },
-      { t: "Inner tube into the outer tube", add: ["outer"], d: "Slide the inner tube with the damper rod into the outer tube." },
+      { t: "Inner tube into the outer tube", add: ["outer", "studs", "drain", "dgasket"], d: "Slide the inner tube with the damper rod into the outer tube." },
       { t: "Bottom bolt", add: ["gasket", "bolt"], d: `Fit the bottom bolt with a new gasket through the outer tube into the damper rod. Thread locker and torque: ${VFSM}.` },
-      { t: "Seal stack", add: ["spacer", "seal", "stopper"], d: "Fit the seal spacer, drive in a new oil seal square to the bore, then fit the stopper ring in its groove." },
+      { t: "Seal stack", add: ["spacer2", "spacer", "seal", "stopper"], d: "Fit the seal spacer, drive in a new oil seal square to the bore, then fit the stopper ring in its groove." },
       { t: "Boot", add: ["boot"], d: "Fit the boot over the top of the outer tube." },
       { t: "Fork oil", add: [], hl: ["inner", "outer"], d: `Fill with fork oil. Grade, amount and level: ${VFSM}. Pump the leg to bleed air before setting the level.` },
-      { t: "Spring and cap", add: ["spring", "oring", "cap"], d: "Fit the fork spring, then the cap with a new O-ring. Check which end of the spring goes up in the manual." },
+      { t: "Springs and cap", add: ["spring", "swasher", "uspring", "oring", "cap"], d: "Fit the main fork spring, the washer, then the short upper spring. Fit the cap with a new O-ring. Check which end of each spring goes up in the manual." },
       { t: "Axle holder (when the wheel goes in)", add: ["holder", "washers", "lockw", "nuts"], d: `With the axle in place, fit the axle holder, washers, lock washers and nuts. Tightening order and torque: ${VFSM}.` },
     ],
     seqNote: "Order follows the stacking on the parts diagram and the usual build for a damper-rod fork. Check it against the service manual before you rely on it.",
