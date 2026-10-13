@@ -905,6 +905,7 @@ body.tw-fullon .chat-fab{display:none}
 .dcard:hover,.dcard:focus-visible{border-color:#8CC0DE;box-shadow:var(--shadow-lg)}
 .dthumb{height:180px;background:#fff;border-bottom:1px solid var(--line);display:grid;place-items:center;padding:8px}
 .dthumb svg{width:100%;height:100%}
+.dthumb.d3t{background:#dde3ea;padding:0}.dthumb.d3t img{width:100%;height:100%;object-fit:contain;display:block}
 .dmeta{display:flex;flex-direction:column;gap:3px;padding:10px 12px 12px;align-items:flex-start}
 .dmeta b{font-family:var(--f-display);font-size:18px;line-height:1.15;color:#111418}
 .dmeta small{color:var(--muted);font-size:12.5px}

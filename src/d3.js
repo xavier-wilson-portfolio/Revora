@@ -6,6 +6,10 @@
 const D3 = { mode: {}, st: null };
 // every 3D diagram uses the fixed-angle viewer (pinch/+/− to zoom, slide or drag to move) unless a model sets lockView: false
 Object.values(D3_MODELS).forEach(m => { if (m.lockView === undefined) m.lockView = true; });
+// Models drawn in the "+X = rider's right, +Z = forward" engine frame are left-handed, which renders as a mirror image of the
+// real bike. Flip them back with a negative X scale on the root (and look from the mirrored side) so left and right are correct.
+const D3_MIRROR = ["CMS-BLCK0003", "CMS-BLCK0013", "CMS-BLCK0014", "CMS-BLCK0015", "CMS-BLCK0040", "CMS-BLCK0041", "CMS-BLCK0044", "CMS-BLCK0049", "CMS-BLCK0050", "CMS-BLCK0074", "DG-EN-02", "CMS-BLCK0019", "DG-CH-02", "CMS-BLCK0057", "DG-BR-01", "CMS-BLCK0032", "CMS-BLCK0052", "CMS-BLCK0018"];
+D3_MIRROR.forEach(id => { const m = D3_MODELS[id]; if (!m || m.mirrorX !== undefined) return; m.mirrorX = true; if (m.view && m.view.dir) m.view = Object.assign({}, m.view, { dir: [-m.view.dir[0], m.view.dir[1], m.view.dir[2]] }); });
 const d3On = d => !!(D3_MODELS[d.id] && D3.mode[d.id] !== "2d" && window.THREE && THREE.OrbitControls && THREE.BufferGeometryUtils && (typeof webglOK !== "function" || webglOK()));
 const D3_MATS = {
   chrome: { c: "#c9d0d5", m: .7, r: .32 }, alu: { c: "#b9b8b0", m: .35, r: .58 }, steel: { c: "#a9aeb3", m: .55, r: .45 }, zinc: { c: "#cbc3a6", m: .5, r: .45 },
@@ -86,7 +90,7 @@ function d3OutlineMat(px, color) {
     fragmentShader: "uniform vec3 col; void main(){ gl_FragColor = vec4(col, 1.0); }" });
 }
 function d3Build(model) {
-  const T = THREE, root = new T.Group(), parts = new Map();
+  const T = THREE, root = new T.Group(), parts = new Map(); if (model.mirrorX) root.scale.x = -1;
   model.parts.forEach(pd => {
     const node = new T.Group(); node.userData.pid = pd.id; const meshes = [], hulls = [];
     d3Geo(pd.geom).forEach(({ geo, mat }) => {
@@ -137,7 +141,7 @@ function d3PageHtml(d) {
       <aside class="d3side"><div class="tcard stack d3info" id="d3info"></div><div class="tcard stack d3list" id="d3list"></div></aside>
     </div>`;
 }
-const D3_OPT0 = () => ({ nums: true, names: false, leaders: true, small: true, xray: false, list: true });
+const D3_OPT0 = () => ({ nums: false, names: false, leaders: true, small: true, xray: false, list: true });
 function d3Teardown() { const st = D3.st; if (!st) return; cancelAnimationFrame(st.raf); st.ro && st.ro.disconnect(); st.ctl && st.ctl.dispose(); if (st.rend) { st.rend.dispose(); st.rend.forceContextLoss && st.rend.forceContextLoss(); } st.dead = true; D3.st = null; }
 function d3Bind(root, d) {
   const T = THREE, model = D3_MODELS[d.id], stage = $("#d3stage", root);
