@@ -135,14 +135,14 @@ function d3PageHtml(d) {
           ${m.lockView ? `<span class="dt-g"><button class="tb" data-d3z="in" title="Zoom in" aria-label="Zoom in">+</button><button class="tb" data-d3z="out" title="Zoom out" aria-label="Zoom out">−</button><button class="tb" data-d3v="fit">Fit</button><button class="tb" id="d3Reset">Reset</button></span>` : `<span class="dt-g"><button class="tb" data-d3v="iso">Iso</button><button class="tb" data-d3v="front">Front</button><button class="tb" data-d3v="side">Side</button><button class="tb" data-d3v="fit">Fit</button><button class="tb" id="d3Reset">Reset</button></span>`}
           <span class="dt-g">${tg("nums", "Part numbers")}${tg("names", "Names")}${tg("leaders", "Leader lines")}${tg("small", "Small hardware")}${tg("xray", "See through")}${tg("list", "Parts list")}</span>
         </div>
-        <div class="d3stage" id="d3stage"><div class="d3lab" id="d3lab"></div><svg class="d3lead" id="d3lead"></svg><div class="d3cap" id="d3cap"></div><div class="d3tip" id="d3tip" hidden></div></div>
-        <p class="hint-text" style="text-align:left;margin:6px 0 0">${m.lockView ? "Pinch with two fingers to zoom (apart = in, together = out), or use + and −. Slide two fingers or drag to move it around." : "Drag to rotate, scroll to zoom, right-drag to pan."} Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
+        <div class="d3stage" id="d3stage">${m.spin4 ? `<button class="d3spin l" data-d3spin="1" title="Turn left" aria-label="Turn the model left">‹</button><button class="d3spin r" data-d3spin="-1" title="Turn right" aria-label="Turn the model right">›</button>` : ""}${m.fullscreen ? `<button class="d3fsbtn" data-d3fs title="Full screen" aria-label="Full screen">⛶</button>` : ""}<div class="d3lab" id="d3lab"></div><svg class="d3lead" id="d3lead"></svg><div class="d3cap" id="d3cap"></div><div class="d3tip" id="d3tip" hidden></div></div>
+        <p class="hint-text" style="text-align:left;margin:6px 0 0">${m.lockView ? (m.spin4 ? "Use the arrows on each side to turn it a quarter turn. " : "") + "Pinch with two fingers to zoom (apart = in, together = out), or use + and −. Slide two fingers or drag to move it around." : "Drag to rotate, scroll to zoom, right-drag to pan."} Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
       </div>
       <aside class="d3side"><div class="tcard stack d3info" id="d3info"></div><div class="tcard stack d3list" id="d3list"></div></aside>
     </div>`;
 }
 const D3_OPT0 = () => ({ nums: false, names: false, leaders: true, small: true, xray: false, list: true });
-function d3Teardown() { const st = D3.st; if (!st) return; cancelAnimationFrame(st.raf); st.ro && st.ro.disconnect(); st.ctl && st.ctl.dispose(); if (st.rend) { st.rend.dispose(); st.rend.forceContextLoss && st.rend.forceContextLoss(); } st.dead = true; D3.st = null; }
+function d3Teardown() { const st = D3.st; if (!st) return; if (st.escFs) document.removeEventListener("keydown", st.escFs); document.body.classList.remove("d3lock"); cancelAnimationFrame(st.raf); st.ro && st.ro.disconnect(); st.ctl && st.ctl.dispose(); if (st.rend) { st.rend.dispose(); st.rend.forceContextLoss && st.rend.forceContextLoss(); } st.dead = true; D3.st = null; }
 function d3Bind(root, d) {
   const T = THREE, model = D3_MODELS[d.id], stage = $("#d3stage", root);
   const keep = D3.st && D3.st.id === d.id && !D3.st.dead ? D3.st : null; if (D3.st) d3Teardown();
@@ -197,8 +197,16 @@ function d3Bind(root, d) {
   play.onclick = () => { if (st.playing) { st.playing = false; play.textContent = "Play"; return; } if (st.goal == null || Math.abs(st.T - st.goal) < 1e-3) st.goal = st.T >= S - 1e-3 ? 0 : S; st.playing = true; play.textContent = "Pause"; };
   $("#d3Next", root).onclick = () => { st.playing = true; st.goal = Math.min(S, Math.floor(st.T + 1e-3) + 1); play.textContent = "Pause"; };
   $("#d3Prev", root).onclick = () => { st.playing = true; st.goal = Math.max(0, Math.ceil(st.T - 1e-3) - 1); play.textContent = "Pause"; };
-  $("#d3Reset", root).onclick = () => { st.userCam = false; st.playing = false; st.goal = null; play.textContent = "Play"; st.sel = null; st.iso = null; st.hidden.clear(); st.force.clear(); setT(0); d3View(st, "iso"); d3Paint(st); d3Side(st); };
+  $("#d3Reset", root).onclick = () => { st.spin = 0; st.userCam = false; st.playing = false; st.goal = null; play.textContent = "Play"; st.sel = null; st.iso = null; st.hidden.clear(); st.force.clear(); setT(0); d3View(st, "iso"); d3Paint(st); d3Side(st); };
   $$("[data-d3v]", root).forEach(b => b.onclick = () => d3View(st, b.dataset.d3v));
+  $$("[data-d3spin]", root).forEach(b => b.onclick = () => d3SpinBy(st, +b.dataset.d3spin));
+  const fsb = $("[data-d3fs]", root); if (fsb) { const main = $(".d3main", root);
+    const isFs = () => document.fullscreenElement === main || document.webkitFullscreenElement === main || main.classList.contains("d3full");
+    const sync = () => { const on = isFs(); fsb.textContent = on ? "✕" : "⛶"; fsb.title = on ? "Exit full screen" : "Full screen"; fsb.setAttribute("aria-label", fsb.title); document.body.classList.toggle("d3lock", main.classList.contains("d3full")); setTimeout(() => { if (!st.dead && !st.userCam) d3View(st, "iso"); }, 120); };
+    fsb.onclick = () => { if (isFs()) { if (main.classList.contains("d3full")) main.classList.remove("d3full"); else (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+      else if (main.requestFullscreen) main.requestFullscreen().catch(() => main.classList.add("d3full")).then(sync); else if (main.webkitRequestFullscreen) main.webkitRequestFullscreen(); else main.classList.add("d3full"); sync(); };
+    main.addEventListener("fullscreenchange", sync); main.addEventListener("webkitfullscreenchange", sync);
+    st.escFs = e => { if (e.key === "Escape" && main.classList.contains("d3full")) { main.classList.remove("d3full"); sync(); } }; document.addEventListener("keydown", st.escFs); }
   $$("[data-d3z]", root).forEach(b => b.onclick = () => { st.userCam = true; const z = st.cam.zoom * (b.dataset.d3z === "in" ? 1.3 : 1 / 1.3); st.cam.zoom = Math.min(st.ctl.maxZoom || 20, Math.max(st.ctl.minZoom || .2, z)); st.cam.updateProjectionMatrix(); st.need = true; st.lbl = true; });
   $$("[data-d3t]", root).forEach(c => c.onchange = () => { st.opt[c.dataset.d3t] = c.checked; if (c.dataset.d3t === "list") root.querySelector(".d3wrap").classList.toggle("nolist", !c.checked); d3Paint(st); d3Side(st); st.lbl = true; st.need = true; });
   $$("[data-d3mode]", root).forEach(b => b.onclick = () => { D3.mode[d.id] = b.dataset.d3mode; d3Teardown(); render(true); });
@@ -217,7 +225,7 @@ function d3View(st, v) {
   // frame the visible parts exactly: project the bounding box corners into the view and size the ortho frustum to them
   const T = THREE; st.m.root.updateMatrixWorld(true); const b = d3Bounds(st); if (b.isEmpty()) return;
   const c = b.getCenter(new T.Vector3());
-  const dir = v === "front" ? new T.Vector3(0, .05, 1) : v === "side" ? new T.Vector3(1, .05, 0) : v === "fit" ? st.cam.position.clone().sub(st.ctl.target).normalize() : new T.Vector3(...st.model.view.dir).normalize();
+  const dir = v === "front" ? new T.Vector3(0, .05, 1) : v === "side" ? new T.Vector3(1, .05, 0) : v === "fit" ? st.cam.position.clone().sub(st.ctl.target).normalize() : new T.Vector3(...st.model.view.dir).normalize().applyAxisAngle(new T.Vector3(0, 1, 0), (st.spin || 0) * Math.PI / 2);
   st.cam.zoom = 1; st.cam.up.set(0, 1, 0); st.cam.position.copy(c.clone().add(dir.multiplyScalar(3000))); st.cam.lookAt(c); st.cam.updateMatrixWorld(true);
   const inv = st.cam.matrixWorldInverse, lo = new T.Vector3(1e9, 1e9, 1e9), hi = new T.Vector3(-1e9, -1e9, -1e9);
   [b.min.x, b.max.x].forEach(x => [b.min.y, b.max.y].forEach(y => [b.min.z, b.max.z].forEach(z => { const q = new T.Vector3(x, y, z).applyMatrix4(inv); lo.min(q); hi.max(q); })));
@@ -227,6 +235,22 @@ function d3View(st, v) {
   // leave room for the label columns either side
   st.half = Math.max((hi.y - lo.y) / 2 * 1.12, (hi.x - lo.x) / 2 / a * 1.45, 40);
   d3Frustum(st); st.ctl.update(); st.need = true; st.lbl = true;
+}
+// quarter-turn spin: orbit the camera about the vertical axis to the next of four fixed angles, refitting the frame as it turns
+function d3SpinBy(st, dirn) {
+  const T = THREE; if (st.spinning) { st.spinQ = (st.spinQ || 0) + dirn; return; } st.spinning = true;
+  const p0 = st.cam.position.clone(), t0 = st.ctl.target.clone(), h0 = st.half, z0 = st.cam.zoom, keepZoom = st.userCam;
+  st.spin = (((st.spin || 0) + dirn) % 4 + 4) % 4; d3View(st, "iso");
+  const p1 = st.cam.position.clone(), t1 = st.ctl.target.clone(), h1 = st.half, z1 = keepZoom ? z0 : 1;
+  const o0 = p0.clone().sub(t0), o1 = p1.clone().sub(t1), a0 = Math.atan2(o0.x, o0.z);
+  let da = Math.atan2(o1.x, o1.z) - a0; while (dirn > 0 && da <= 0) da += 2 * Math.PI; while (dirn < 0 && da >= 0) da -= 2 * Math.PI;
+  const r0 = Math.hypot(o0.x, o0.z), r1 = Math.hypot(o1.x, o1.z), dur = 650, t00 = performance.now();
+  const step = now => { if (st.dead) return; const k = Math.min(1, (now - t00) / dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    const a = a0 + da * e, r = r0 + (r1 - r0) * e, y = o0.y + (o1.y - o0.y) * e, tg = t0.clone().lerp(t1, e);
+    st.ctl.target.copy(tg); st.cam.position.set(tg.x + Math.sin(a) * r, tg.y + y, tg.z + Math.cos(a) * r); st.cam.up.set(0, 1, 0); st.cam.lookAt(tg);
+    st.half = h0 + (h1 - h0) * e; st.cam.zoom = z0 + (z1 - z0) * e; d3Frustum(st); st.ctl.update(); st.need = true; st.lbl = true;
+    if (k < 1) requestAnimationFrame(step); else { st.spinning = false; if (st.spinQ) { const q = Math.sign(st.spinQ); st.spinQ -= q; d3SpinBy(st, q); } } };
+  requestAnimationFrame(step);
 }
 function d3Caption(st) { const cap = $("#d3cap"); if (!cap) return; const S = st.model.stages.length, i = Math.min(S - 1, Math.floor(st.T + 1e-6));
   cap.innerHTML = st.T <= 1e-3 ? `<b>Exploded</b> · ${S} assembly stages` : st.T >= S - 1e-3 ? `<b>Assembled</b>` : `<b>Stage ${i + 1} of ${S}:</b> ${esc(st.model.stages[i].t)}<small>${esc(st.model.stages[i].d)}</small>`; }

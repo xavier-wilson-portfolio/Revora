@@ -1124,3 +1124,11 @@ body.tw-fullon .chat-fab{display:none}
 .d3row b{font-family:var(--f-mono);font-size:12.5px;text-align:right}.d3row code{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
 .d3eye{all:unset;cursor:pointer;display:grid;place-items:center;width:24px;height:24px;border-radius:6px}.d3eye:hover{background:#fff}.d3eye svg{width:15px;height:15px}
 @media (max-width:1000px){.d3wrap,.d3wrap.nolist{grid-template-columns:minmax(0,1fr)}.d3side{position:static}.d3stage{height:60vh}}
+
+.d3spin{position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:44px;height:64px;border-radius:12px;border:1px solid var(--line-2);background:rgba(255,255,255,.88);font-size:34px;line-height:1;color:var(--ink,#1f2328);cursor:pointer;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.08)}.d3spin:hover{background:#fff}.d3spin.l{left:10px}.d3spin.r{right:10px}
+.d3fsbtn{position:absolute;top:10px;right:10px;z-index:5;width:38px;height:38px;border-radius:10px;border:1px solid var(--line-2);background:rgba(255,255,255,.9);font-size:20px;cursor:pointer;display:grid;place-items:center}
+.d3main:fullscreen,.d3main.d3full{background:var(--bg,#fff);padding:12px;display:flex;flex-direction:column;gap:8px;box-sizing:border-box}
+.d3main.d3full{position:fixed;inset:0;z-index:9999}
+.d3main:fullscreen .d3stage,.d3main.d3full .d3stage{flex:1;height:auto;min-height:0}
+.d3main:fullscreen .hint-text,.d3main.d3full .hint-text{display:none}
+body.d3lock{overflow:hidden}
