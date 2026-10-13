@@ -1145,3 +1145,4 @@ body.d3lock{overflow:hidden}
 .d3chk .have-on{background:#2f9e4f;color:#fff;border-color:#2f9e4f}.d3chk .miss-on{background:#d23b33;color:#fff;border-color:#d23b33}
 .d3row .hdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#b8bec4;margin-right:5px;vertical-align:1px}.d3row .hdot.g{background:#2f9e4f}.d3row .hdot.r{background:#d23b33}
 .d3spin:disabled{opacity:.35;cursor:default}
+.twdiag .vh{display:flex;gap:8px;align-items:center}.twdiag .vh svg{width:18px;height:18px;flex:none}

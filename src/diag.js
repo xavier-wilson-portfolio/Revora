@@ -83,7 +83,7 @@ VIEWS.diagrams = {
     if (d3On(d)) return d3PageHtml(d);
     if (DV.id !== d.id) { const v0 = diagViews(d)[0] || "exploded"; Object.assign(DV, { id: d.id, view: v0, sel: null, hidden: new Set(), step: null, vb: null, playing: false, pos: diagLayout(d, v0) }); }
     const st = meta().diagSteps?.[d.id] || {};
-    return `<div class="dhead"><button class="linkbtn" data-diagback>${ic("back")} ${DV.ret ? "Back to the step" : "All diagrams"}</button><div class="dtitle"><span class="mono">${esc(d.fig)}</span><h1>${esc(d.title)}</h1>${verPill(d.verify)}</div>${D3_MODELS[d.id] ? `<div class="seg"><button data-d3mode2="3d">3D model</button><button class="on">2D drawing</button></div>` : ""}</div>
+    return `<div class="dhead"><button class="linkbtn" data-diagback>${ic("back")} ${DV.ret ? (DV.ret === "viewer" ? "Back to the 3D garage" : "Back to the step") : "All diagrams"}</button><div class="dtitle"><span class="mono">${esc(d.fig)}</span><h1>${esc(d.title)}</h1>${verPill(d.verify)}</div>${D3_MODELS[d.id] ? `<div class="seg"><button data-d3mode2="3d">3D model</button><button class="on">2D drawing</button></div>` : ""}</div>
     <div class="dview">
       <div class="dmain"><div class="dtools" role="toolbar" aria-label="Diagram tools">
         ${diagViews(d).length > 1 ? `<div class="seg">${diagViews(d).map(k => `<button data-dv="${k}" class="${DV.view === k ? "on" : ""}">${k[0].toUpperCase() + k.slice(1)}</button>`).join("")}</div>` : ""}

@@ -125,7 +125,7 @@ function d3Apply(st) { const memo = new Map(); st.m.parts.forEach((p, id) => p.n
 function d3PageHtml(d) {
   const m = D3_MODELS[d.id], st = D3.st && D3.st.id === d.id ? D3.st : null, o = st ? st.opt : D3_OPT0();
   const tg = (k, l) => `<label class="dchk"><input type="checkbox" data-d3t="${k}" ${o[k] ? "checked" : ""}> ${l}</label>`;
-  return `<div class="dhead"><button class="linkbtn" data-diagback>${ic("back")} ${DV.ret ? "Back to the step" : "All diagrams"}</button><div class="dtitle"><span class="mono">${esc(d.fig || "")}</span><h1>${esc(d.title)}</h1><span class="vpill v-schematic" title="${esc(m.accuracy)}">Approximate geometry</span></div>
+  return `<div class="dhead"><button class="linkbtn" data-diagback>${ic("back")} ${DV.ret ? (DV.ret === "viewer" ? "Back to the 3D garage" : "Back to the step") : "All diagrams"}</button><div class="dtitle"><span class="mono">${esc(d.fig || "")}</span><h1>${esc(d.title)}</h1><span class="vpill v-schematic" title="${esc(m.accuracy)}">Approximate geometry</span></div>
       <div class="seg"><button class="on" data-d3mode="3d">3D model</button><button data-d3mode="2d">2D drawing</button></div></div>
     <div class="d3wrap ${o.list ? "" : "nolist"}">
       <div class="d3main">

@@ -113,6 +113,7 @@ function twinPanel() {
       ${(n.conf || a?.conf) === "schematic" ? `<div class="banner"><div class="grow">Schematic: placed to show how the parts relate. Sizes are not measured.</div></div>` : ""}
       ${n.secures ? `<div class="hint-text" style="text-align:left">Secures: ${esc(n.secures)}. Repeated fasteners share one shape but keep their own ID and position.</div>` : ""}
       ${n.children.length ? `<div class="hint-text" style="text-align:left">${n.children.filter(c => c.kind !== "missing").length} pieces inside${n.children.some(c => c.kind === "missing") ? ` · ${n.children.filter(c => c.kind === "missing").length} not modeled` : ""}. Click one of them in the model to pull it out.</div>` : ""}</div>`;
+    const twD = twDiagsFor(n, A); if (twD.length) h += `<div class="tcard stack twdiag"><h3 class="vh">${ic("cube")} See the diagram</h3><p class="hint-text" style="text-align:left;margin:0">Open the parts diagram to take ${esc(n.name)} apart step by step and see every Suzuki part number.</p><div class="row" style="gap:6px;flex-wrap:wrap">${twD.map(d => `<button class="btn sm ${d === twD[0] ? "pri" : ""}" data-twdiag="${d.id}">${esc(d.title)}${D3_MODELS[d.id] ? "" : " (2D)"}</button>`).join("")}</div></div>`;
     if (n.kind !== "missing") h += `<div class="tcard stack"><h3 class="vh">Inspect</h3><div class="grid2">
         ${TW.focus.length ? `<button class="btn sm pri" id="iBack">${ic("back")} Back</button>` : `<button class="btn sm pri" id="iOut">Pull it out</button>`}<button class="btn sm" id="iFit">Zoom to it</button>
         <button class="btn sm" id="iExp">${TW.explodeNode === n && TW.explodeK > 0 ? "Collapse assembly" : "Explode assembly"}</button><button class="btn sm" id="iClr">${TW.cleared ? "Put parts back" : "Clear the view"}</button>
@@ -288,3 +289,14 @@ function toggleFull() {
   const req = m.requestFullscreen || m.webkitRequestFullscreen; const fallback = () => { m.classList.add("pseudo-full"); syncFull(); };
   if (!req) { fallback(); return; } try { const r = req.call(m); if (r && r.catch) r.then(syncFull).catch(fallback); else setTimeout(() => { if (!isFull()) fallback(); }, 300); } catch (e) { fallback(); }
 }
+
+/* 3D garage -> parts diagrams: the assembly's CMSNL pages, best name match first */
+function twDiagsFor(n, A) {
+  const ids = []; let a = n; while (a) { const AA = TW_ASSY[a.assy] || (a === n ? A : null); if (AA && AA.d) AA.d.forEach(b => ids.includes(b) || ids.push(b)); a = a.parent; }
+  (A && A.d || []).forEach(b => ids.includes(b) || ids.push(b));
+  const words = s => String(s || "").toLowerCase().replace(/[^a-z ]/g, " ").split(/\s+/).filter(w => w.length > 3).map(w => w.replace(/s$/, ""));
+  const nw = new Set(words(n.name)); const score = d => words(d.title).filter(w => nw.has(w)).length;
+  const ds = ids.map(b => (typeof DIAGRAMS !== "undefined" ? DIAGRAMS : []).find(x => x.blk === "BLCK" + String(b).padStart(4, "0"))).filter(Boolean);
+  return ds.map((d, i) => [d, score(d), i]).sort((x, y) => y[1] - x[1] || x[2] - y[2]).map(x => x[0]);
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-twdiag]"); if (!b) return; DV.ret = "viewer"; DV.id = null; go("diagram-" + b.dataset.twdiag); });
