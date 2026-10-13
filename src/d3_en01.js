@@ -94,7 +94,7 @@
     id: "DG-EN-01", title: "Camshafts and valves", units: "mm", page: "BLCK0004",
     accuracy: "Approximate geometry. Part identity, numbering and fitting order come from the CMSNL camshaft-valve page. Cylinder spacing, valve angle and the sizes of the valves, springs, tappets and cams are typical for an engine of this type, not measured from a GS750. The stem seal size (7 x 14.4 x 9) and the shim range (2.15 to 3.10 mm) come from the catalogue. Use the factory service manual for every dimension.",
     view: { dir: [.8, .62, 1.5], up: [0, 1, 0] },
-    spin4: true, fullscreen: true, // four quarter-turn views with arrows either side, and a full-screen button
+    spin4: true, fullscreen: true, tilt3: true, partsCheck: true, // up/down arrows for top and bottom views; ⚙ parts check (have / missing / notes) // four quarter-turn views with arrows either side, and a full-screen button
     notModelled: "Refs 15, 16 and 17 are the same shim in different thicknesses (2.15 to 3.10 mm in 0.05 mm steps); only one sits on each tappet, so they share the shim part with ref 13. Ref 18 (tappet shim set) and ref 19 (its case) are a workshop kit for clearance adjustment, not parts of the engine, so they aren't drawn. The valve cotters, valve guides, cam caps and the cylinder head are on other pages, so they aren't drawn either. The cam lobes are shown at angles that keep every valve shut, not at the real timing.",
     stages: [
       { t: "Spring seats", d: "Drop a spring seat over each valve guide, four on the intake side at the back and four on the exhaust side at the front." },

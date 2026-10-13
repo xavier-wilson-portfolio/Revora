@@ -161,6 +161,7 @@ function scheduleRender() { if (renderQueued) return; renderQueued = true; reque
 function onData(first, coll) {
   if (first) { setSave("ok"); render(true); return; }
   if (coll === "activity" && !["home", "team"].includes(R.sec)) { refreshDrawer(); return; }
+  if (coll === "meta" && R.sec === "diagrams" && typeof D3 !== "undefined" && D3.st && !D3.st.dead && D3.st.model.partsCheck) { d3Paint(D3.st); d3Chk(D3.st); d3Side(D3.st); return; }
   scheduleRender();
 }
 function render(full) {

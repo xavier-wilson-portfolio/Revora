@@ -135,18 +135,18 @@ function d3PageHtml(d) {
           ${m.lockView ? `<span class="dt-g"><button class="tb" data-d3z="in" title="Zoom in" aria-label="Zoom in">+</button><button class="tb" data-d3z="out" title="Zoom out" aria-label="Zoom out">−</button><button class="tb" data-d3v="fit">Fit</button><button class="tb" id="d3Reset">Reset</button></span>` : `<span class="dt-g"><button class="tb" data-d3v="iso">Iso</button><button class="tb" data-d3v="front">Front</button><button class="tb" data-d3v="side">Side</button><button class="tb" data-d3v="fit">Fit</button><button class="tb" id="d3Reset">Reset</button></span>`}
           <span class="dt-g">${tg("nums", "Part numbers")}${tg("names", "Names")}${tg("leaders", "Leader lines")}${tg("small", "Small hardware")}${tg("xray", "See through")}${tg("list", "Parts list")}</span>
         </div>
-        <div class="d3stage" id="d3stage">${m.spin4 ? `<button class="d3spin l" data-d3spin="1" title="Turn left" aria-label="Turn the model left">‹</button><button class="d3spin r" data-d3spin="-1" title="Turn right" aria-label="Turn the model right">›</button>` : ""}${m.fullscreen ? `<button class="d3fsbtn" data-d3fs title="Full screen" aria-label="Full screen">⛶</button>` : ""}<div class="d3lab" id="d3lab"></div><svg class="d3lead" id="d3lead"></svg><div class="d3cap" id="d3cap"></div><div class="d3tip" id="d3tip" hidden></div></div>
-        <p class="hint-text" style="text-align:left;margin:6px 0 0">${m.lockView ? (m.spin4 ? "Use the arrows on each side to turn it a quarter turn. " : "") + "Pinch with two fingers to zoom (apart = in, together = out), or use + and −. Slide two fingers or drag to move it around." : "Drag to rotate, scroll to zoom, right-drag to pan."} Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
+        <div class="d3stage" id="d3stage">${m.spin4 ? `<button class="d3spin l" data-d3spin="1" title="Turn left" aria-label="Turn the model left">‹</button><button class="d3spin r" data-d3spin="-1" title="Turn right" aria-label="Turn the model right">›</button>` : ""}${m.tilt3 ? `<button class="d3spin u" data-d3tilt="1" title="View from the top" aria-label="Tilt to see it from the top">˄</button><button class="d3spin dn" data-d3tilt="-1" title="View from the bottom" aria-label="Tilt to see it from the bottom">˅</button>` : ""}${m.partsCheck && !st && lsGet("gs750.d3pm", false) ? "" : ""}${m.partsCheck ? `<button class="d3setbtn" id="d3Set" title="Settings" aria-label="Viewer settings" aria-haspopup="true">⚙</button><div class="d3menu" id="d3Menu" hidden><b>View</b><label class="dchk"><input type="checkbox" id="d3PM" ${(st ? st.partsMode : lsGet("gs750.d3pm", false)) ? "checked" : ""}> Parts check: mark what you have</label><p class="hint-text" style="text-align:left;margin:0">Click a part, then mark it as one you have or one that's missing. Green = have, red = missing. You can add a note to any part.</p></div><div class="d3legend" id="d3Leg" hidden></div><div class="d3chk" id="d3Chk" hidden></div>` : ""}${m.fullscreen ? `<button class="d3fsbtn" data-d3fs title="Full screen" aria-label="Full screen">⛶</button>` : ""}<div class="d3lab" id="d3lab"></div><svg class="d3lead" id="d3lead"></svg><div class="d3cap" id="d3cap"></div><div class="d3tip" id="d3tip" hidden></div></div>
+        <p class="hint-text" style="text-align:left;margin:6px 0 0">${m.lockView ? (m.spin4 ? "Use the arrows on each side to turn it a quarter turn" + (m.tilt3 ? ", and the top and bottom arrows to see it from above or below" : "") + ". " : "") + (m.partsCheck ? "Open the ⚙ settings for the parts check. " : "") + "Pinch with two fingers to zoom (apart = in, together = out), or use + and −. Slide two fingers or drag to move it around." : "Drag to rotate, scroll to zoom, right-drag to pan."} Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
       </div>
       <aside class="d3side"><div class="tcard stack d3info" id="d3info"></div><div class="tcard stack d3list" id="d3list"></div></aside>
     </div>`;
 }
 const D3_OPT0 = () => ({ nums: false, names: false, leaders: true, small: true, xray: false, list: true });
-function d3Teardown() { const st = D3.st; if (!st) return; if (st.escFs) document.removeEventListener("keydown", st.escFs); document.body.classList.remove("d3lock"); cancelAnimationFrame(st.raf); st.ro && st.ro.disconnect(); st.ctl && st.ctl.dispose(); if (st.rend) { st.rend.dispose(); st.rend.forceContextLoss && st.rend.forceContextLoss(); } st.dead = true; D3.st = null; }
+function d3Teardown() { const st = D3.st; if (!st) return; if (st.closeMenu) document.removeEventListener("click", st.closeMenu); if (st.escFs) document.removeEventListener("keydown", st.escFs); document.body.classList.remove("d3lock"); cancelAnimationFrame(st.raf); st.ro && st.ro.disconnect(); st.ctl && st.ctl.dispose(); if (st.rend) { st.rend.dispose(); st.rend.forceContextLoss && st.rend.forceContextLoss(); } st.dead = true; D3.st = null; }
 function d3Bind(root, d) {
   const T = THREE, model = D3_MODELS[d.id], stage = $("#d3stage", root);
   const keep = D3.st && D3.st.id === d.id && !D3.st.dead ? D3.st : null; if (D3.st) d3Teardown();
-  const st = D3.st = { id: d.id, model, T: keep ? keep.T : 0, goal: null, playing: false, sel: keep ? keep.sel : null, hidden: keep ? keep.hidden : new Set(), iso: keep ? keep.iso : null, force: keep ? keep.force : new Set(), opt: keep ? keep.opt : D3_OPT0(), need: true, lbl: true };
+  const st = D3.st = { id: d.id, model, T: keep ? keep.T : 0, goal: null, playing: false, sel: keep ? keep.sel : null, hidden: keep ? keep.hidden : new Set(), iso: keep ? keep.iso : null, force: keep ? keep.force : new Set(), opt: keep ? keep.opt : D3_OPT0(), spin: keep ? keep.spin : 0, tilt: keep ? keep.tilt : 0, partsMode: keep ? keep.partsMode : !!(model.partsCheck && lsGet("gs750.d3pm", false)), need: true, lbl: true };
   const w = stage.clientWidth, h = stage.clientHeight;
   st.rend = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: !!window.__shotMode }); st.rend.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); st.rend.setSize(w, h);
   st.rend.outputEncoding = T.sRGBEncoding; st.rend.toneMapping = T.ACESFilmicToneMapping; st.rend.toneMappingExposure = .92; st.rend.setClearColor(0xdde3ea, 1); stage.prepend(st.rend.domElement);
@@ -197,9 +197,14 @@ function d3Bind(root, d) {
   play.onclick = () => { if (st.playing) { st.playing = false; play.textContent = "Play"; return; } if (st.goal == null || Math.abs(st.T - st.goal) < 1e-3) st.goal = st.T >= S - 1e-3 ? 0 : S; st.playing = true; play.textContent = "Pause"; };
   $("#d3Next", root).onclick = () => { st.playing = true; st.goal = Math.min(S, Math.floor(st.T + 1e-3) + 1); play.textContent = "Pause"; };
   $("#d3Prev", root).onclick = () => { st.playing = true; st.goal = Math.max(0, Math.ceil(st.T - 1e-3) - 1); play.textContent = "Pause"; };
-  $("#d3Reset", root).onclick = () => { st.spin = 0; st.userCam = false; st.playing = false; st.goal = null; play.textContent = "Play"; st.sel = null; st.iso = null; st.hidden.clear(); st.force.clear(); setT(0); d3View(st, "iso"); d3Paint(st); d3Side(st); };
+  $("#d3Reset", root).onclick = () => { st.spin = 0; st.tilt = 0; d3TiltBtns(st); st.userCam = false; st.playing = false; st.goal = null; play.textContent = "Play"; st.sel = null; st.iso = null; st.hidden.clear(); st.force.clear(); setT(0); d3View(st, "iso"); d3Paint(st); d3Side(st); };
   $$("[data-d3v]", root).forEach(b => b.onclick = () => d3View(st, b.dataset.d3v));
   $$("[data-d3spin]", root).forEach(b => b.onclick = () => d3SpinBy(st, +b.dataset.d3spin));
+  $$("[data-d3tilt]", root).forEach(b => b.onclick = () => d3TiltBy(st, +b.dataset.d3tilt)); d3TiltBtns(st);
+  const setb = $("#d3Set", root), menu = $("#d3Menu", root);
+  if (setb) { setb.onclick = e => { e.stopPropagation(); menu.hidden = !menu.hidden; };
+    menu.onclick = e => e.stopPropagation(); st.closeMenu = () => { menu.hidden = true; }; document.addEventListener("click", st.closeMenu);
+    $("#d3PM", root).onchange = e => { st.partsMode = e.target.checked; lsSet("gs750.d3pm", st.partsMode); d3Paint(st); d3Chk(st); d3Side(st); }; d3Chk(st); }
   const fsb = $("[data-d3fs]", root); if (fsb) { const main = $(".d3main", root);
     const isFs = () => document.fullscreenElement === main || document.webkitFullscreenElement === main || main.classList.contains("d3full");
     const sync = () => { const on = isFs(); fsb.textContent = on ? "✕" : "⛶"; fsb.title = on ? "Exit full screen" : "Full screen"; fsb.setAttribute("aria-label", fsb.title); document.body.classList.toggle("d3lock", main.classList.contains("d3full")); setTimeout(() => { if (!st.dead && !st.userCam) d3View(st, "iso"); }, 120); };
@@ -221,11 +226,14 @@ function d3Bind(root, d) {
 }
 function d3Frustum(st) { const el = st.rend.domElement, W = el.clientWidth || 800, H = el.clientHeight || 600, a = W / H, s = st.half || 400; Object.assign(st.cam, { left: -s * a, right: s * a, top: s, bottom: -s }); st.cam.updateProjectionMatrix(); }
 function d3Bounds(st) { const b = new THREE.Box3(); st.m.parts.forEach(p => { if (p.node.visible) b.expandByObject(p.node); }); return b; }
+function d3DirFor(st) { const T = THREE, b = new T.Vector3(...st.model.view.dir).normalize().applyAxisAngle(new T.Vector3(0, 1, 0), (st.spin || 0) * Math.PI / 2);
+  if (!st.tilt) return b; const h = new T.Vector3(b.x, 0, b.z).normalize(), e = st.tilt * 76 * Math.PI / 180;
+  return h.multiplyScalar(Math.cos(e)).add(new T.Vector3(0, Math.sin(e), 0)).normalize(); }
 function d3View(st, v) {
   // frame the visible parts exactly: project the bounding box corners into the view and size the ortho frustum to them
   const T = THREE; st.m.root.updateMatrixWorld(true); const b = d3Bounds(st); if (b.isEmpty()) return;
   const c = b.getCenter(new T.Vector3());
-  const dir = v === "front" ? new T.Vector3(0, .05, 1) : v === "side" ? new T.Vector3(1, .05, 0) : v === "fit" ? st.cam.position.clone().sub(st.ctl.target).normalize() : new T.Vector3(...st.model.view.dir).normalize().applyAxisAngle(new T.Vector3(0, 1, 0), (st.spin || 0) * Math.PI / 2);
+  const dir = v === "front" ? new T.Vector3(0, .05, 1) : v === "side" ? new T.Vector3(1, .05, 0) : v === "fit" ? st.cam.position.clone().sub(st.ctl.target).normalize() : d3DirFor(st);
   st.cam.zoom = 1; st.cam.up.set(0, 1, 0); st.cam.position.copy(c.clone().add(dir.multiplyScalar(3000))); st.cam.lookAt(c); st.cam.updateMatrixWorld(true);
   const inv = st.cam.matrixWorldInverse, lo = new T.Vector3(1e9, 1e9, 1e9), hi = new T.Vector3(-1e9, -1e9, -1e9);
   [b.min.x, b.max.x].forEach(x => [b.min.y, b.max.y].forEach(y => [b.min.z, b.max.z].forEach(z => { const q = new T.Vector3(x, y, z).applyMatrix4(inv); lo.min(q); hi.max(q); })));
@@ -258,13 +266,15 @@ function d3Clamp(st) {
   if (best && best.d > 1e-6) { const d = R.clone().multiplyScalar(best.nx - tx).add(U.clone().multiplyScalar(best.ny - ty)); st.ctl.target.add(d); st.cam.position.add(d); }
   st.clamping = false;
 }
+function d3TiltBtns(st) { $$("[data-d3tilt]").forEach(b => { const end = +b.dataset.d3tilt === (st.tilt || 0); b.disabled = end; b.title = end ? (st.tilt > 0 ? "Already looking from the top" : "Already looking from the bottom") : (+b.dataset.d3tilt > 0 ? (st.tilt < 0 ? "Back to the normal view" : "View from the top") : (st.tilt > 0 ? "Back to the normal view" : "View from the bottom")); }); }
+function d3TiltBy(st, t) { const nt = Math.max(-1, Math.min(1, (st.tilt || 0) + t)); if (nt === (st.tilt || 0) || st.spinning) return; st.tiltTo = nt; d3SpinBy(st, 0); setTimeout(() => d3TiltBtns(st), 0); }
 function d3SpinBy(st, dirn) {
-  const T = THREE; if (st.spinning) { st.spinQ = (st.spinQ || 0) + dirn; return; } st.spinning = true;
+  const T = THREE; if (st.spinning) { if (dirn) st.spinQ = (st.spinQ || 0) + dirn; return; } st.spinning = true;
   const p0 = st.cam.position.clone(), t0 = st.ctl.target.clone(), h0 = st.half, z0 = st.cam.zoom, keepZoom = st.userCam;
-  st.spin = (((st.spin || 0) + dirn) % 4 + 4) % 4; d3View(st, "iso");
+  st.spin = (((st.spin || 0) + dirn) % 4 + 4) % 4; if (st.tiltTo !== undefined) { st.tilt = st.tiltTo; delete st.tiltTo; } d3View(st, "iso");
   const p1 = st.cam.position.clone(), t1 = st.ctl.target.clone(), h1 = st.half, z1 = keepZoom ? z0 : 1;
   const o0 = p0.clone().sub(t0), o1 = p1.clone().sub(t1), a0 = Math.atan2(o0.x, o0.z);
-  let da = Math.atan2(o1.x, o1.z) - a0; while (dirn > 0 && da <= 0) da += 2 * Math.PI; while (dirn < 0 && da >= 0) da -= 2 * Math.PI;
+  let da = Math.atan2(o1.x, o1.z) - a0; while (dirn > 0 && da <= 0) da += 2 * Math.PI; while (dirn < 0 && da >= 0) da -= 2 * Math.PI; if (!dirn) { while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI; }
   const r0 = Math.hypot(o0.x, o0.z), r1 = Math.hypot(o1.x, o1.z), dur = 650, t00 = performance.now();
   const step = now => { if (st.dead) return; const k = Math.min(1, (now - t00) / dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
     const a = a0 + da * e, r = r0 + (r1 - r0) * e, y = o0.y + (o1.y - o0.y) * e, tg = t0.clone().lerp(t1, e);
@@ -284,10 +294,40 @@ function d3Paint(st) {
     p.meshes.forEach(m => { m.material.emissive.set(on ? "#1d6aa5" : hv ? "#4d8fbf" : "#000000"); m.material.emissiveIntensity = on ? .45 : hv ? .25 : 0; m.material.transparent = ghost; m.material.opacity = ghost ? .18 : 1; m.material.depthWrite = !ghost; m.material.needsUpdate = true; });
     p.hulls.forEach(hh => { hh.visible = !ghost; hh.material.uniforms.col.value.set(on ? "#1d6aa5" : "#2a2e32"); hh.material.uniforms.px.value = on ? 2.2 : 1.15; });
     p.node.children.forEach(c => { if (c.isLineSegments) c.material.opacity = ghost ? .22 : .42; });
+    const hs = st.partsMode ? d3HaveGet(st, id).have : undefined, tint = hs === true ? d3HC("g") : hs === false ? d3HC("r") : null;
+    p.meshes.forEach(m => { const mt = m.material; if (!mt.userData.c0) mt.userData.c0 = mt.color.clone(); mt.color.copy(mt.userData.c0); if (tint) mt.color.lerp(tint, .72); });
   });
   st.need = true; st.lbl = true;
 }
-function d3Select(st, id) { st.sel = id && st.sel === id ? null : id; d3Paint(st); d3Side(st); const row = id && document.querySelector(`#d3list [data-d3p="${id}"]`); if (row) row.scrollIntoView({ block: "nearest" }); }
+/* ---------- parts check: have it (green) / missing (red) / note, saved with the restoration data ---------- */
+const D3_HC = {}; const d3HC = k => D3_HC[k] || (D3_HC[k] = new THREE.Color(k === "g" ? "#2f9e4f" : "#d23b33"));
+function d3HaveDoc(st) { return (S.meta && S.meta["have-" + st.id]) || { id: "have-" + st.id, parts: {} }; }
+function d3HaveGet(st, pid) { return (d3HaveDoc(st).parts || {})[pid] || {}; }
+async function d3HaveSet(st, pid, patch, what) {
+  const d = clone(d3HaveDoc(st)); d.parts = d.parts || {}; const cur = Object.assign({}, d.parts[pid], patch);
+  Object.keys(cur).forEach(k => { if (cur[k] === null || cur[k] === "") delete cur[k]; }); if (Object.keys(cur).length) d.parts[pid] = cur; else delete d.parts[pid];
+  const p = st.m.parts.get(pid); S.meta[d.id] = d; d3Paint(st); d3Chk(st); d3Side(st);
+  try { await store.put("meta", d, { silent: true, action: what + " (" + (p ? p.d.name : pid) + ", " + st.model.title + ")" }); } catch (e) {}
+}
+function d3Chk(st) {
+  const card = $("#d3Chk"), leg = $("#d3Leg"); if (!card) return;
+  if (!st.partsMode) { card.hidden = true; leg.hidden = true; return; }
+  const all = [...st.m.parts.keys()], got = all.filter(id => d3HaveGet(st, id).have === true).length, miss = all.filter(id => d3HaveGet(st, id).have === false).length;
+  leg.hidden = false; leg.innerHTML = `<b>Parts check</b><span><i class="g"></i>${got} have</span><span><i class="r"></i>${miss} missing</span><span><i></i>${all.length - got - miss} not checked</span>`;
+  const p = st.sel && st.m.parts.get(st.sel); if (!p) { card.hidden = false; card.innerHTML = `<p class="hint-text" style="margin:0;text-align:left">Click a part to mark it.</p>`; return; }
+  const h = d3HaveGet(st, p.d.id); card.hidden = false;
+  card.innerHTML = `<div class="row" style="justify-content:space-between;align-items:flex-start"><div><span class="eyebrow">Ref ${esc(p.d.ref)}${p.d.count ? " · ×" + p.d.count : ""}</span><b style="display:block">${esc(p.d.name)}</b></div><button class="linkbtn" data-chk="close" aria-label="Close">✕</button></div>
+    <div class="row" style="gap:6px"><button class="btn sm ${h.have === true ? "have-on" : ""}" data-chk="have">✓ I have it</button><button class="btn sm ${h.have === false ? "miss-on" : ""}" data-chk="miss">✕ Missing</button>${h.have !== undefined ? `<button class="btn sm" data-chk="clear">Clear</button>` : ""}</div>
+    <label class="lbl" for="d3Note">Note</label><textarea id="d3Note" rows="2" placeholder="e.g. cracked, worn, needs replacing">${esc(h.note || "")}</textarea>
+    <div class="row" style="gap:6px"><button class="btn sm pri" data-chk="note">Save note</button>${h.note ? `<span class="hint-text">Saved</span>` : ""}</div>`;
+  $$("[data-chk]", card).forEach(b => b.onclick = () => { const a = b.dataset.chk, id = p.d.id;
+    if (a === "have") d3HaveSet(st, id, { have: h.have === true ? null : true }, "marked a part as on hand");
+    else if (a === "miss") d3HaveSet(st, id, { have: h.have === false ? null : false }, "marked a part as missing");
+    else if (a === "clear") d3HaveSet(st, id, { have: null }, "cleared a part check");
+    else if (a === "note") d3HaveSet(st, id, { note: ($("#d3Note", card).value || "").trim() }, "added a part note");
+    else if (a === "close") { st.sel = null; d3Paint(st); d3Side(st); d3Chk(st); } });
+}
+function d3Select(st, id) { st.sel = id && st.sel === id ? null : id; d3Paint(st); d3Side(st); d3Chk(st); const row = id && document.querySelector(`#d3list [data-d3p="${id}"]`); if (row) row.scrollIntoView({ block: "nearest" }); }
 /* side panel: selected part + parts list (synchronised with the 3D selection) */
 const d3Rows = st => (typeof CMS_PAGES !== "undefined" && CMS_PAGES[st.id] && CMS_PAGES[st.id].rows) || (typeof CMS_DATA !== "undefined" && CMS_DATA[st.model.page] && CMS_DATA[st.model.page].rows) || [];
 function d3Pn(st, ref) { return cmsCurrent(d3Rows(st), String(ref).split(/[,\s]+/)[0]); }
@@ -304,7 +344,7 @@ function d3Side(st) {
     if (a === "iso") st.iso = st.iso === id ? null : id; else if (a === "hide") { st.hidden.has(id) ? st.hidden.delete(id) : st.hidden.add(id); } else if (a === "seat") { st.force.has(id) ? st.force.delete(id) : st.force.add(id); d3Apply(st); } else if (a === "desel") st.sel = null;
     d3Paint(st); d3Side(st); });
   const rows = st.model.parts.slice().sort((a, b) => (parseInt(a.ref) || 0) - (parseInt(b.ref) || 0));
-  list.innerHTML = `<h3 class="vh">Parts list (${rows.length})</h3>${st.model.notModelled ? `<p class="hint-text" style="text-align:left;margin:0">${esc(st.model.notModelled)}</p>` : ""}<div class="d3rows">${rows.map(pd => `<div class="d3row ${st.sel === pd.id ? "on" : ""} ${st.hidden.has(pd.id) || (!st.opt.small && pd.small) ? "off" : ""}" data-d3p="${pd.id}"><b>${esc(pd.ref)}</b><span>${esc(pd.name)}${pd.count ? ` <small>×${pd.count}</small>` : ""}</span><code>${esc(fmtPn(d3Pn(st, pd.ref)) || "")}</code><button class="d3eye" data-d3h="${pd.id}" aria-label="${st.hidden.has(pd.id) ? "Show" : "Hide"} ${esc(pd.name)}">${ic(st.hidden.has(pd.id) ? "x" : "eye")}</button></div>`).join("")}</div>`;
+  list.innerHTML = `<h3 class="vh">Parts list (${rows.length})</h3>${st.model.notModelled ? `<p class="hint-text" style="text-align:left;margin:0">${esc(st.model.notModelled)}</p>` : ""}<div class="d3rows">${rows.map(pd => `<div class="d3row ${st.sel === pd.id ? "on" : ""} ${st.hidden.has(pd.id) || (!st.opt.small && pd.small) ? "off" : ""}" data-d3p="${pd.id}"><b>${st.partsMode ? `<i class="hdot ${d3HaveGet(st, pd.id).have === true ? "g" : d3HaveGet(st, pd.id).have === false ? "r" : ""}" title="${d3HaveGet(st, pd.id).have === true ? "Have it" : d3HaveGet(st, pd.id).have === false ? "Missing" : "Not checked"}"></i>` : ""}${esc(pd.ref)}</b><span>${esc(pd.name)}${pd.count ? ` <small>×${pd.count}</small>` : ""}</span><code>${esc(fmtPn(d3Pn(st, pd.ref)) || "")}</code><button class="d3eye" data-d3h="${pd.id}" aria-label="${st.hidden.has(pd.id) ? "Show" : "Hide"} ${esc(pd.name)}">${ic(st.hidden.has(pd.id) ? "x" : "eye")}</button></div>`).join("")}</div>`;
   $$("[data-d3p]", list).forEach(r => r.onclick = e => { if (e.target.closest("[data-d3h]")) return; d3Select(st, r.dataset.d3p); });
   $$("[data-d3h]", list).forEach(b => b.onclick = () => { const id = b.dataset.d3h; st.hidden.has(id) ? st.hidden.delete(id) : st.hidden.add(id); d3Paint(st); d3Side(st); });
 }

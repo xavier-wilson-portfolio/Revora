@@ -1134,3 +1134,14 @@ body.tw-fullon .chat-fab{display:none}
 body.d3lock{overflow:hidden}
 
 .st-b .stepdiag{background:#eef4fa;border:1px solid #cfe0ee;border-radius:10px;padding:10px 12px}.st-b .stepdiag .row{gap:6px;flex-wrap:wrap}
+
+.d3spin.u{top:10px;left:50%;transform:translateX(-50%);width:64px;height:40px}.d3spin.dn{top:auto;bottom:10px;left:50%;transform:translateX(-50%);width:64px;height:40px}
+.d3setbtn{position:absolute;top:10px;right:56px;z-index:5;width:38px;height:38px;border-radius:10px;border:1px solid var(--line-2);background:rgba(255,255,255,.9);font-size:20px;cursor:pointer;display:grid;place-items:center}
+.d3menu{position:absolute;top:54px;right:10px;z-index:6;width:min(300px,80%);background:#fff;border:1px solid var(--line-2);border-radius:12px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);display:grid;gap:8px;text-align:left}
+.d3legend{position:absolute;top:10px;left:12px;z-index:4;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:rgba(255,255,255,.94);border:1px solid #d6dade;border-radius:8px;padding:6px 10px;font-size:13px;max-width:calc(100% - 140px)}
+.d3legend i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#b8bec4;margin-right:4px;vertical-align:-1px}.d3legend i.g{background:#2f9e4f}.d3legend i.r{background:#d23b33}
+.d3chk{position:absolute;right:12px;bottom:58px;z-index:5;width:min(300px,calc(100% - 24px));background:#fff;border:1px solid var(--line-2);border-radius:12px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);display:grid;gap:8px;text-align:left}
+.d3chk textarea{width:100%;box-sizing:border-box;font:inherit;border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;resize:vertical}
+.d3chk .have-on{background:#2f9e4f;color:#fff;border-color:#2f9e4f}.d3chk .miss-on{background:#d23b33;color:#fff;border-color:#d23b33}
+.d3row .hdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#b8bec4;margin-right:5px;vertical-align:1px}.d3row .hdot.g{background:#2f9e4f}.d3row .hdot.r{background:#d23b33}
+.d3spin:disabled{opacity:.35;cursor:default}
