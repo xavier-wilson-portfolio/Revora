@@ -1132,3 +1132,5 @@ body.tw-fullon .chat-fab{display:none}
 .d3main:fullscreen .d3stage,.d3main.d3full .d3stage{flex:1;height:auto;min-height:0}
 .d3main:fullscreen .hint-text,.d3main.d3full .hint-text{display:none}
 body.d3lock{overflow:hidden}
+
+.st-b .stepdiag{background:#eef4fa;border:1px solid #cfe0ee;border-radius:10px;padding:10px 12px}.st-b .stepdiag .row{gap:6px;flex-wrap:wrap}

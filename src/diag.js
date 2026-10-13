@@ -83,7 +83,7 @@ VIEWS.diagrams = {
     if (d3On(d)) return d3PageHtml(d);
     if (DV.id !== d.id) { const v0 = diagViews(d)[0] || "exploded"; Object.assign(DV, { id: d.id, view: v0, sel: null, hidden: new Set(), step: null, vb: null, playing: false, pos: diagLayout(d, v0) }); }
     const st = meta().diagSteps?.[d.id] || {};
-    return `<div class="dhead"><button class="linkbtn" data-diagback>${ic("back")} All diagrams</button><div class="dtitle"><span class="mono">${esc(d.fig)}</span><h1>${esc(d.title)}</h1>${verPill(d.verify)}</div>${D3_MODELS[d.id] ? `<div class="seg"><button data-d3mode2="3d">3D model</button><button class="on">2D drawing</button></div>` : ""}</div>
+    return `<div class="dhead"><button class="linkbtn" data-diagback>${ic("back")} ${DV.ret ? "Back to the step" : "All diagrams"}</button><div class="dtitle"><span class="mono">${esc(d.fig)}</span><h1>${esc(d.title)}</h1>${verPill(d.verify)}</div>${D3_MODELS[d.id] ? `<div class="seg"><button data-d3mode2="3d">3D model</button><button class="on">2D drawing</button></div>` : ""}</div>
     <div class="dview">
       <div class="dmain"><div class="dtools" role="toolbar" aria-label="Diagram tools">
         ${diagViews(d).length > 1 ? `<div class="seg">${diagViews(d).map(k => `<button data-dv="${k}" class="${DV.view === k ? "on" : ""}">${k[0].toUpperCase() + k.slice(1)}</button>`).join("")}</div>` : ""}
@@ -101,7 +101,7 @@ VIEWS.diagrams = {
   bind(root) {
     $$("[data-donly]", root).forEach(b => b.onclick = () => { DIAG_ONLY_B = b.dataset.donly === "1"; render(true); });
     $$("[data-diag]", root).forEach(b => b.onclick = () => { R.diag = b.dataset.diag; DV.id = null; location.hash = "diagram-" + R.diag; render(true); window.scrollTo(0, 0); });
-    $$("[data-diagback]", root).forEach(b => b.onclick = () => { d3Teardown(); R.diag = null; DV.id = null; DV.playing = false; location.hash = "diagrams"; render(true); });
+    $$("[data-diagback]", root).forEach(b => b.onclick = () => { d3Teardown(); R.diag = null; DV.id = null; DV.playing = false; if (DV.ret) { const r = DV.ret; DV.ret = null; go(r); return; } location.hash = "diagrams"; render(true); });
     const d = R.diag && diagById(R.diag); if (!d) { d3Teardown(); return; }
     if (d3On(d)) { d3Bind(root, d); return; }
     d3Teardown(); $$("[data-d3mode2]", root).forEach(b => b.onclick = () => { D3.mode[d.id] = "3d"; render(true); });
@@ -216,3 +216,28 @@ function diagHowTo() {
     <li><span>Only add steps that come from a documented order, and say where the order comes from. Never add torque values or clearances. Write VERIFY IN FACTORY SERVICE MANUAL.</span></li>
     <li><span>If you have a real photo or scan, attach it as a document on the part. Photos stay photos; don't redraw them as if they were factory drawings.</span></li></ol>`;
 }
+
+/* Course steps -> the parts diagrams that show what the step is working on (GS750B pages) */
+const STEP_DIAG = {
+  "D-002": ["CMS-BLCK0023", "CMS-BLCK0071"], "D-003": ["CMS-BLCK0001", "CMS-BLCK0026", "CMS-BLCK0051"],
+  "E-001": ["CMS-BLCK0017", "CMS-BLCK0014", "CMS-BLCK0015", "CMS-BLCK0013"], "E-002": ["CMS-BLCK0049"], "E-004": ["CMS-BLCK0019", "CMS-BLCK0018", "CMS-BLCK0017"],
+  "E-005": ["CMS-BLCK0018", "DG-EN-01", "CMS-BLCK0019"], "E-006": ["CMS-BLCK0003"], "E-007": ["CMS-BLCK0017"], "E-008": ["DG-EN-02"], "E-009": ["DG-EN-02", "CMS-BLCK0014"],
+  "E-010": ["CMS-BLCK0050", "CMS-BLCK0049"], "E-011": ["CMS-BLCK0074", "CMS-BLCK0040"], "E-012": ["DG-EN-03", "CMS-BLCK0010"], "E-014": ["CMS-BLCK0014"],
+  "E-016": ["CMS-BLCK0014", "DG-EN-02", "CMS-BLCK0074", "CMS-BLCK0040", "CMS-BLCK0044"], "E-017": ["DG-EN-02", "CMS-BLCK0017", "CMS-BLCK0018"],
+  "E-018": ["DG-EN-01", "CMS-BLCK0003"], "E-019": ["DG-EN-01"], "E-020": ["CMS-BLCK0050"],
+  "F-001": ["CMS-BLCK0023"], "F-002": ["CMS-BLCK0071"], "F-003": ["CMS-BLCK0057"], "F-004": ["DG-CH-01"], "F-005": ["CMS-BLCK0008"], "F-006": ["DG-CH-02", "CMS-BLCK0058"],
+  "F-007": ["DG-CH-02", "CMS-BLCK0058"], "F-008": ["DG-CH-02", "CMS-BLCK0058"], "F-009": ["DG-BR-02", "CMS-BLCK0052"], "F-010": ["CMS-BLCK0032", "DG-BR-01", "CMS-BLCK0055", "CMS-BLCK0052"],
+  "F-011": ["CMS-BLCK0026", "CMS-BLCK0051"], "F-012": ["CMS-BLCK0058"],
+  "G-001": ["DG-EL-01"], "G-002": ["DG-EL-01", "CMS-BLCK0020"], "G-003": ["DG-EL-01"], "G-004": ["CMS-BLCK0041", "CMS-BLCK0020"], "G-005": ["CMS-BLCK0011", "CMS-BLCK0020"],
+  "G-006": ["CMS-BLCK0045", "CMS-BLCK0060", "CMS-BLCK0043", "CMS-BLCK0053", "CMS-BLCK0076", "CMS-BLCK0065"], "G-007": ["CMS-BLCK0065", "CMS-BLCK0043"],
+  "H-003": ["CMS-BLCK0023"], "H-004": ["CMS-BLCK0037", "CMS-BLCK0025", "CMS-BLCK0054"], "H-005": ["CMS-BLCK0014", "CMS-BLCK0013", "CMS-BLCK0015"],
+  "I-001": ["DG-CH-01", "CMS-BLCK0071"], "I-002": ["DG-CH-02", "CMS-BLCK0058"], "I-003": ["DG-BR-01", "CMS-BLCK0032", "CMS-BLCK0052", "CMS-BLCK0055"], "I-004": ["DG-FU-01"],
+  "I-005": ["CMS-BLCK0037", "CMS-BLCK0036"], "I-006": ["CMS-BLCK0001", "CMS-BLCK0048"],
+  "J-001": ["CMS-BLCK0023"], "J-002": ["CMS-BLCK0071", "CMS-BLCK0057", "DG-CH-01", "CMS-BLCK0008"], "J-003": ["DG-CH-02", "CMS-BLCK0058", "DG-BR-01", "CMS-BLCK0052"],
+  "J-004": ["CMS-BLCK0023", "CMS-BLCK0014"], "J-005": ["DG-EL-01", "CMS-BLCK0020"], "J-006": ["CMS-BLCK0045", "CMS-BLCK0060", "CMS-BLCK0065", "CMS-BLCK0043", "CMS-BLCK0053", "CMS-BLCK0076", "CMS-BLCK0042"],
+  "J-007": ["DG-FU-01", "CMS-BLCK0001", "CMS-BLCK0036"], "J-008": ["CMS-BLCK0048"],
+  "K-001": ["CMS-BLCK0049"], "K-002": ["CMS-BLCK0042", "CMS-BLCK0045", "CMS-BLCK0010"], "K-003": ["DG-EL-01"], "K-004": ["CMS-BLCK0036", "DG-FU-01", "CMS-BLCK0037"],
+  "L-004": ["DG-FU-01"], "M-001": ["DG-BR-01", "DG-CH-01", "DG-CH-02", "CMS-BLCK0058"], "M-002": ["CMS-BLCK0043", "CMS-BLCK0053", "CMS-BLCK0076", "CMS-BLCK0045", "CMS-BLCK0060"] };
+function stepDiagHtml(t) { const ids = (STEP_DIAG[t.id] || []).filter(id => diagById(id)); if (!ids.length) return "";
+  return `<div class="stepdiag"><div class="lbl">See the diagram</div><div class="row">${ids.map(id => { const d = diagById(id); return `<button class="btn sm" data-stepdiag="${id}">${ic("cube")} ${esc(d.title)}${D3_MODELS[id] ? "" : " (2D)"}</button>`; }).join("")}</div></div>`; }
+document.addEventListener("click", e => { const b = e.target.closest("[data-stepdiag]"); if (!b) return; DV.ret = R.sec === "lesson" ? "lesson-" + R.lesson : R.sec; DV.id = null; go("diagram-" + b.dataset.stepdiag); });

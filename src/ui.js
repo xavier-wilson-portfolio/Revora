@@ -45,6 +45,7 @@ function go(sec, f) {
   if (typeof sec === "string" && sec.startsWith("diagram-")) { R.diag = sec.slice(8); sec = "diagrams"; } else if (sec === "diagrams") R.diag = null;
   if (typeof sec === "string" && sec.startsWith("guide-")) { R.guide = sec.slice(6); sec = "guides"; } else if (sec === "guides") R.guide = null;
   sec = ALIAS[sec] || sec; if (!SEC[sec]) return;
+  if (sec !== "diagrams" && typeof DV !== "undefined") DV.ret = null;
   R.sec = sec; if (f) R.f[sec] = Object.assign({}, f);
   lsSet("gs750.route", { sec, lesson: R.lesson, tab: R.tab, view: R.view });
   try { history.replaceState(null, "", "#" + (sec === "lesson" ? "lesson-" + R.lesson : sec === "guides" && R.guide ? "guide-" + R.guide : sec === "diagrams" && R.diag ? "diagram-" + R.diag : sec)); } catch (e) {}

@@ -93,7 +93,7 @@ VIEWS.lesson = {
         <div class="stepl">${s.tasks.map((t, k) => { const open = openSteps.has(t.id), wait = openPrereqs(t), pts = (t.partIds || []).map(id => S.parts[id]).filter(Boolean);
           return `<div class="st ${t.status === "Complete" ? "done" : ""} ${open ? "open" : ""}"><div class="st-h" data-toggle="${t.id}">${stepCheck(t)}<div class="st-t"><b>${k + 1}. ${esc(t.title)}</b><span>${t.status !== "Complete" && t.status !== "Not started" ? esc(t.status) + " · " : ""}${n(t.estHours) ? "about " + n(t.estHours) + " h" : ""}${t.safety === "Critical" ? " · safety-critical" : ""}${wait.length && t.status !== "Complete" ? " · waiting on " + wait.length + " earlier step" + (wait.length > 1 ? "s" : "") : ""}</span></div><svg class="st-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
           ${howtoList(t)}
-          ${open ? `<div class="st-b">${t.instructions ? `<div><div class="lbl">Workbook note</div><p>${esc(t.instructions)}</p></div>` : ""}
+          ${open ? `<div class="st-b">${stepDiagHtml(t)}${t.instructions ? `<div><div class="lbl">Workbook note</div><p>${esc(t.instructions)}</p></div>` : ""}
             ${t.reason ? `<div><div class="lbl">Why</div><p>${esc(t.reason)}</p></div>` : ""}
             ${t.expected ? `<div><div class="lbl">You're done when</div><p>${esc(t.expected)}</p></div>` : ""}
             ${t.tools ? `<div><div class="lbl">Tools & materials</div><p>${esc(t.tools)}</p></div>` : ""}
