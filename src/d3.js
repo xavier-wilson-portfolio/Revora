@@ -126,11 +126,11 @@ function d3PageHtml(d) {
         <div class="dtools d3tools" role="toolbar" aria-label="3D parts viewer">
           <span class="dt-g"><button class="tb" data-d3go="0">Explode</button><button class="tb" data-d3go="S">Assemble</button><button class="tb" id="d3Play" aria-label="Play">Play</button></span>
           <span class="dt-g"><button class="tb" id="d3Prev" title="Step back">${ic("back")}</button><input type="range" id="d3T" min="0" max="${m.stages.length}" step="0.001" value="${st ? st.T : 0}" aria-label="Assembly timeline"><button class="tb" id="d3Next" title="Step forward">${ic("next")}</button></span>
-          <span class="dt-g"><button class="tb" data-d3v="iso">Iso</button><button class="tb" data-d3v="front">Front</button><button class="tb" data-d3v="side">Side</button><button class="tb" data-d3v="fit">Fit</button><button class="tb" id="d3Reset">Reset</button></span>
+          ${m.lockView ? `<span class="dt-g"><button class="tb" data-d3z="in" title="Zoom in" aria-label="Zoom in">+</button><button class="tb" data-d3z="out" title="Zoom out" aria-label="Zoom out">−</button><button class="tb" data-d3v="fit">Fit</button><button class="tb" id="d3Reset">Reset</button></span>` : `<span class="dt-g"><button class="tb" data-d3v="iso">Iso</button><button class="tb" data-d3v="front">Front</button><button class="tb" data-d3v="side">Side</button><button class="tb" data-d3v="fit">Fit</button><button class="tb" id="d3Reset">Reset</button></span>`}
           <span class="dt-g">${tg("nums", "Part numbers")}${tg("names", "Names")}${tg("leaders", "Leader lines")}${tg("small", "Small hardware")}${tg("xray", "See through")}${tg("list", "Parts list")}</span>
         </div>
         <div class="d3stage" id="d3stage"><div class="d3lab" id="d3lab"></div><svg class="d3lead" id="d3lead"></svg><div class="d3cap" id="d3cap"></div><div class="d3tip" id="d3tip" hidden></div></div>
-        <p class="hint-text" style="text-align:left;margin:6px 0 0">Drag to rotate, scroll to zoom, right-drag to pan. Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
+        <p class="hint-text" style="text-align:left;margin:6px 0 0">${m.lockView ? "Scroll or use + and − to zoom, drag to move around." : "Drag to rotate, scroll to zoom, right-drag to pan."} Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
       </div>
       <aside class="d3side"><div class="tcard stack d3info" id="d3info"></div><div class="tcard stack d3list" id="d3list"></div></aside>
     </div>`;
@@ -144,7 +144,7 @@ function d3Bind(root, d) {
   const w = stage.clientWidth, h = stage.clientHeight;
   st.rend = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: !!window.__shotMode }); st.rend.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); st.rend.setSize(w, h);
   st.rend.outputEncoding = T.sRGBEncoding; st.rend.toneMapping = T.ACESFilmicToneMapping; st.rend.toneMappingExposure = .92; st.rend.setClearColor(0xffffff, 1); stage.prepend(st.rend.domElement);
-  st.rend.domElement.setAttribute("aria-label", `3D model: ${d.title}. Drag to rotate, scroll to zoom, right-drag to pan.`);
+  st.rend.domElement.setAttribute("aria-label", `Parts model: ${d.title}. ${model.lockView ? "Scroll to zoom, drag to move." : "Drag to rotate, scroll to zoom, right-drag to pan."}`);
   st.scene = new T.Scene(); const pm = new T.PMREMGenerator(st.rend); st.scene.environment = pm.fromScene(new T.RoomEnvironment(), .04).texture;
   st.scene.add(new T.HemisphereLight(0xffffff, 0xb8c0c6, .5));
   const key = new T.DirectionalLight(0xffffff, 1.25); key.position.set(-1.2, 2.4, 1.6); st.scene.add(key);
@@ -152,6 +152,9 @@ function d3Bind(root, d) {
   st.m = d3Build(model); st.scene.add(st.m.root);
   st.cam = new T.OrthographicCamera(-1, 1, 1, -1, -5000, 5000);
   st.ctl = new T.OrbitControls(st.cam, st.rend.domElement); Object.assign(st.ctl, { enableDamping: true, dampingFactor: .1, screenSpacePanning: true, rotateSpeed: .7, zoomSpeed: 1.1 });
+  if (model.lockView) { // fixed viewing angle: zoom and move only, the drawing never turns
+    st.ctl.enableRotate = false; st.ctl.mouseButtons = { LEFT: T.MOUSE.PAN, MIDDLE: T.MOUSE.DOLLY, RIGHT: T.MOUSE.PAN }; st.ctl.touches = { ONE: T.TOUCH.PAN, TWO: T.TOUCH.DOLLY_PAN };
+    st.ctl.minZoom = .5; st.ctl.maxZoom = 14; }
   st.ctl.addEventListener("change", () => { st.need = true; st.lbl = true; }); st.ctl.addEventListener("start", () => { st.userCam = true; });
   d3Apply(st); d3View(st, "iso");
   const resize = () => { const W = stage.clientWidth, H = stage.clientHeight; if (!W || !H) return; st.rend.setSize(W, H); d3Frustum(st); st.m.parts.forEach(p => p.hulls.forEach(hh => hh.material.uniforms.res.value.set(W, H))); st.need = true; st.lbl = true; };
@@ -178,6 +181,7 @@ function d3Bind(root, d) {
   $("#d3Prev", root).onclick = () => { st.playing = true; st.goal = Math.max(0, Math.ceil(st.T - 1e-3) - 1); play.textContent = "Pause"; };
   $("#d3Reset", root).onclick = () => { st.userCam = false; st.playing = false; st.goal = null; play.textContent = "Play"; st.sel = null; st.iso = null; st.hidden.clear(); st.force.clear(); setT(0); d3View(st, "iso"); d3Paint(st); d3Side(st); };
   $$("[data-d3v]", root).forEach(b => b.onclick = () => d3View(st, b.dataset.d3v));
+  $$("[data-d3z]", root).forEach(b => b.onclick = () => { st.userCam = true; const z = st.cam.zoom * (b.dataset.d3z === "in" ? 1.3 : 1 / 1.3); st.cam.zoom = Math.min(st.ctl.maxZoom || 20, Math.max(st.ctl.minZoom || .2, z)); st.cam.updateProjectionMatrix(); st.need = true; st.lbl = true; });
   $$("[data-d3t]", root).forEach(c => c.onchange = () => { st.opt[c.dataset.d3t] = c.checked; if (c.dataset.d3t === "list") root.querySelector(".d3wrap").classList.toggle("nolist", !c.checked); d3Paint(st); d3Side(st); st.lbl = true; st.need = true; });
   $$("[data-d3mode]", root).forEach(b => b.onclick = () => { D3.mode[d.id] = b.dataset.d3mode; d3Teardown(); render(true); });
   d3Paint(st); d3Side(st); d3Caption(st);

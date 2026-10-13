@@ -18,6 +18,7 @@ const D3_FORK = {
   id: "DG-CH-01", title: "Front fork leg", units: "mm", page: "BLCK0030",
   accuracy: "Approximate geometry. Part identity, numbering and the order they fit come from the CMSNL front fork page and its picture. Shapes and sizes are modelled to typical damper-rod fork proportions, not measured from a GS750. Use the factory service manual for every dimension.",
   view: { dir: [1.15, .62, 1.25], up: [0, 1, 0] },
+  lockView: true, // fixed angle: zoom in/out and move only, no rotating
   notModelled: "Ref 0 (complete damper assembly) and ref 3 (left leg outer tube, a mirror of ref 2) aren't separate parts of this leg, so they aren't drawn.",
   stages: [
     { t: "Rebound spring and ring onto the damper rod", d: "Slide the rebound spring onto the damper rod from the top, under the piston head. The ring sits in the groove on the head." },
