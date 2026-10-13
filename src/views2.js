@@ -110,7 +110,7 @@ DRAWER_EXTRA.parts = (p, isNew) => {
   return {
     head: partPill(S.parts[p.id] || p),
     top: `${PART_IMG[p.id] ? `<div style="text-align:center;background:var(--stage-bg);border-radius:14px;padding:6px"><img src="${PART_IMG[p.id]}" alt="" style="max-height:200px"></div>` : ""}
-    ${g3 ? `<button type="button" class="btn" id="q3d">${ic("cube")} See it in 3D</button>` : ""}
+    ${g3 ? `<div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn" id="q3d">${ic("cube")} See it in 3D</button>${scanBtn(GROUP_DIAG[g3], "Scan these parts", "btn")}</div>` : ""}
     ${askBtn(`Tell me about the ${p.name} on a 1977 GS750: what it does, what usually wears out, and how to inspect it.`, p.name, "btn ask")}
     ${partCatalogueHtml(p.id)}
     <div class="panel blue stack" style="padding:12px">

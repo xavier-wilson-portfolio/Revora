@@ -17,6 +17,7 @@ const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == n
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
 const VERIFY = "VERIFY IN FACTORY SERVICE MANUAL";
 const ICON = {
+  camera: '<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
   expand: '<path d="M4 9V4h5 M20 9V4h-5 M4 15v5h5 M20 15v5h-5"/>', shrink: '<path d="M9 4v5H4 M15 4v5h5 M9 20v-5H4 M15 20v-5h5"/>',
   eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', undo: '<path d="M9 14L4 9l5-5 M4 9h10a6 6 0 010 12h-3"/>', refresh: '<path d="M20 11a8 8 0 10-2.3 5.7 M20 4v7h-7"/>',
   home: '<path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>',

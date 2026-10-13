@@ -2,8 +2,11 @@
    FREE mode (default): add a Workers AI binding named AI (Settings > Bindings > Add > Workers AI).
      Uses Cloudflare's free daily allowance. No API key or card needed.
    CLAUDE mode (optional, paid): add secret ANTHROPIC_API_KEY and variable PROVIDER = anthropic.
-   Other settings: ALLOWED_ORIGINS (comma list), MODEL (overrides the default model).
+   Other settings: ALLOWED_ORIGINS (comma list), MODEL (overrides the default model), VISION_MODEL (overrides the parts-scan model).
+   PARTS SCAN: POST { scan: { image: "data:image/jpeg;base64,...", prompt: "..." } } returns { text }. Uses a free Workers AI vision model.
 */
+const VISION_MODELS = ["@cf/meta/llama-3.2-11b-vision-instruct"];
+const MAX_IMAGE = 2400000; // about 1.8 MB of photo as base64
 const FREE_MODELS = ["@cf/meta/llama-3.3-70b-instruct-fp8-fast", "@cf/meta/llama-3.1-8b-instruct"];
 const SYSTEM = `You are "the mechanic" on Revora, a website that helps people restore old motorcycles and cars.
 Only help with vehicle restoration, repair, maintenance, tools, parts, paint and shop safety. Politely decline anything else in one sentence.
@@ -34,6 +37,7 @@ export default {
     if (list.length > PER_10_MIN) return deny(429, "slow down", h);
 
     let body; try { body = await req.json(); } catch (e) { return deny(400, "bad json", h); }
+    if (body && body.scan) return scanParts(body.scan, env, h);
     const msgs = Array.isArray(body && body.messages) ? body.messages.slice(-MAX_MSGS) : [];
     let total = 0;
     const clean = msgs.filter(m => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
@@ -67,3 +71,22 @@ export default {
     return new Response(up.body, { status: 200, headers: { ...h, "content-type": "text/event-stream", "cache-control": "no-store" } });
   },
 };
+
+/* Parts scan: one photo + the list of parts that could be in it. Free Workers AI vision model. */
+async function scanParts(scan, env, h) {
+  if (!env.AI) return deny(503, "not configured: add a Workers AI binding named AI", h);
+  const image = typeof scan.image === "string" ? scan.image : "", prompt = typeof scan.prompt === "string" ? scan.prompt.slice(0, 12000) : "";
+  if (!/^data:image\/(jpeg|png|webp);base64,/.test(image) || !prompt) return deny(400, "bad scan", h);
+  if (image.length > MAX_IMAGE) return deny(413, "photo too large", h);
+  const run = model => env.AI.run(model, { messages: [{ role: "system", content: "You identify motorcycle parts in workshop photos. Answer with JSON only." }, { role: "user", content: prompt }], image, max_tokens: 1200 });
+  let lastErr = "";
+  for (const model of (env.VISION_MODEL ? [env.VISION_MODEL] : VISION_MODELS)) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try { const out = await run(model); const text = (out && (out.response || out.description)) || ""; if (text) return new Response(JSON.stringify({ text, model }), { status: 200, headers: { ...h, "content-type": "application/json" } }); break; }
+      catch (e) { lastErr = String(e && e.message || e); console.log("vision error", model, lastErr);
+        // Meta's vision model needs its license accepted once per account: send "agree", then try again.
+        if (attempt === 0 && /agree|license|5016/i.test(lastErr)) { try { await env.AI.run(model, { prompt: "agree" }); } catch (e2) {} continue; } break; }
+    }
+  }
+  return deny(/limit|quota|capacity/i.test(lastErr) ? 429 : 502, "vision AI error " + lastErr.slice(0, 200), h);
+}
