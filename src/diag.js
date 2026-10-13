@@ -216,3 +216,12 @@ function diagHowTo() {
     <li><span>Only add steps that come from a documented order, and say where the order comes from. Never add torque values or clearances. Write VERIFY IN FACTORY SERVICE MANUAL.</span></li>
     <li><span>If you have a real photo or scan, attach it as a document on the part. Photos stay photos; don't redraw them as if they were factory drawings.</span></li></ol>`;
 }
+
+/* "See diagram" buttons: which diagram to open for each part group of the bike (GS750B pages first) */
+const GROUP_DIAG = { frame: "CMS-BLCK0023", stem: "CMS-BLCK0071", fork: "DG-CH-01", handlebar: "CMS-BLCK0042", controls: "CMS-BLCK0045", switches: "CMS-BLCK0045",
+  mcyl: "CMS-BLCK0032", wheelF: "DG-CH-02", wheelR: "CMS-BLCK0058", tires: "DG-CH-02", brakeF: "DG-CH-02", caliper: "DG-BR-01", hoses: "CMS-BLCK0026", brakeR: "CMS-BLCK0052",
+  engine: "CMS-BLCK0017", head: "CMS-BLCK0018", cases: "CMS-BLCK0014", clutch: "DG-EN-03", alt: "CMS-BLCK0041", starter: "CMS-BLCK0069", carbs: "DG-FU-01",
+  boots: "CMS-BLCK0001", airbox: "CMS-BLCK0001", exhaust: "CMS-BLCK0048", tank: "CMS-BLCK0037", tap: "CMS-BLCK0036", seat: "CMS-BLCK0062", coverL: "CMS-BLCK0025",
+  coverR: "CMS-BLCK0025", fenders: "CMS-BLCK0054", swingarm: "CMS-BLCK0057", shocks: "CMS-BLCK0008", chain: "CMS-BLCK0058", headlight: "CMS-BLCK0043",
+  gauges: "CMS-BLCK0065", sigF: "CMS-BLCK0076", tail: "CMS-BLCK0053", harness: "DG-EL-01", ignition: "CMS-BLCK0011", pegs: "CMS-BLCK0021" };
+function openDiagramFor(k) { const id = GROUP_DIAG[k]; if (typeof closeDrawer === "function") try { closeDrawer(); } catch (e) {} DV.id = null; go(id && diagById(id) ? "diagram-" + id : "diagrams"); }

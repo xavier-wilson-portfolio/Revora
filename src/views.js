@@ -270,7 +270,7 @@ function moduleView(mod) {
       if (tab === "photos") { const ds = sorted("docs").filter(d => ["Before photo", "After photo", "During photo"].includes(d.kind) && (pids.has(d.partId) || fins.some(f => f.partId && f.partId === d.partId))); const byPart = {}; ds.forEach(d => (byPart[d.partId || "—"] = byPart[d.partId || "—"] || []).push(d));
         body = Object.keys(byPart).length ? Object.entries(byPart).map(([pid, list]) => `<div class="panel stack"><div class="row"><h3>${refName("parts", pid)}</h3><span class="spacer"></span><button class="btn sm" data-up="${esc(pid)}|Before photo">+ Before</button><button class="btn sm" data-up="${esc(pid)}|After photo">+ After</button></div><div class="grid g2"><div><h2 class="sec">Before</h2>${thumbs(list.filter(d => d.kind === "Before photo"))}</div><div><h2 class="sec">After</h2>${thumbs(list.filter(d => d.kind === "After photo"))}</div></div></div>`).join("") : `<div class="empty"><b>No before/after photos yet</b>Open a part and use Upload photo, or set the photo type to Before or After.</div>`; }
       return `<div class="ph"><div><h1>${esc(SEC[sec].t)}</h1><p>${MODULE_INTRO[mod]}</p></div><div class="act">${mod === "finish" ? `<button class="btn pri" data-new="finishes">${ic("plus")} Finish record</button>` : `<button class="btn pri" data-new="steps|${esc(JSON.stringify({ module: mod, seq: steps.length + 1 }))}">${ic("plus")} Procedure step</button>`}</div></div>
-      <div class="panel blue row center" style="gap:18px"><img src="img/${MODULE_IMG[mod]}.svg" alt="" style="width:min(260px,100%);border-radius:12px"><div class="stack" style="gap:6px;align-items:center;max-width:42ch"><b>See it in 3D</b><span class="hint-text">Pull this area out of the bike, spin it around and spread the pieces apart.</span><button class="btn pri" data-3d="${MODULE_GROUP[mod]}">${ic("cube")} Open in 3D</button></div></div>
+      <div class="panel blue row center" style="gap:18px"><img src="img/${MODULE_IMG[mod]}.svg" alt="" style="width:min(260px,100%);border-radius:12px"><div class="stack" style="gap:6px;align-items:center;max-width:42ch"><b>See the diagram</b><span class="hint-text">Open the parts diagram for this area, take it apart and put it back together step by step.</span><button class="btn pri" data-3d="${MODULE_GROUP[mod]}">${ic("cube")} See diagram</button></div></div>
       <div class="kpis">
         <button class="kpi" data-mtab="parts"><span class="l">Parts approved</span><span class="v">${parts.filter(p => partColor(p) === "green").length}/${parts.length}</span><span class="s">${parts.filter(p => partColor(p) === "red").length} untouched</span></button>
         <button class="kpi" data-mtab="tasks"><span class="l">Tasks complete</span><span class="v">${done}/${tp.length}</span><span class="s">${tasks.filter(t => !tasksClosed(t) && !openPrereqs(t).length).length} ready now</span></button>
@@ -284,7 +284,7 @@ function moduleView(mod) {
       bindTables(root); bindInline(root);
       $$("[data-tab],[data-mtab]", root).forEach(b => b.onclick = () => { R.tab[R.sec] = b.dataset.tab || b.dataset.mtab; render(false); });
       $$("[data-up]", root).forEach(b => b.onclick = () => { const [pid, kind] = b.dataset.up.split("|"); uploadPhotos({ partId: pid === "—" ? "" : pid, kind }); });
-      $$("[data-3d]", root).forEach(b => b.onclick = () => openIn3D(b.dataset["3d"]));
+      $$("[data-3d]", root).forEach(b => b.onclick = () => openDiagramFor(b.dataset["3d"]));
     }
   };
 }

@@ -28,7 +28,7 @@ VIEWS.home = {
       <div class="hero-stats"><div class="ring" style="--p:${Math.round(prog * 100)}"><b>${pct(prog)}</b></div>restored</div>
       <div class="eyebrow">${esc(m.bike || "1977 Suzuki GS750")} · Restoration course</div>
       <h1>Let's bring this GS750 back to life</h1>
-      <p>Work through the course one part at a time. Every step explains what to do and why, and the 3D garage shows you exactly what each part looks like.</p>
+      <p>Work through the course one part at a time. Every step explains what to do and why, and the diagrams show you exactly what each part looks like and how it fits.</p>
       <div class="act"><button class="btn tan big" data-lesson="${nx.id}">${ic("play")} ${lessonState(nx) === "todo" && nxi === 0 ? "Start Part 1" : "Continue Part " + (nxi + 1)}: ${esc(LESSONS[nx.id]?.title || nx.name)}</button><button class="btn big" data-go="viewer">${ic("cube")} Explore the 3D bike</button></div>
       <img src="img/hero.svg" alt="Illustration of a 1977 Suzuki GS750" width="1050" height="570">
     </section>
@@ -102,7 +102,7 @@ VIEWS.lesson = {
             ${pts.length ? `<div><div class="lbl">Parts involved</div><div class="row">${pts.map(p => `<button class="btn sm" data-open="parts|${p.id}"><i class="dot" style="background:${COL[partColor(p)]}"></i>${esc(p.name)}</button>`).join("")}</div></div>` : ""}
             <div class="row"><button class="btn sm" data-log="${t.id}">${ic("plus")} Log time</button><button class="btn sm" data-photo="${t.id}">${ic("image")} Add photo</button><button class="btn sm" data-open="tasks|${t.id}">Open full details</button>${askBtn(`Help me with this step of my GS750 restoration: "${t.title}". The instructions say: ${t.instructions}`, t.title)}</div></div>` : ""}</div>`; }).join("")}</div></div>
       <div class="panel stack"><h2 class="sec left" style="display:flex;gap:8px;align-items:center">${ic("warn")} Tips & safety</h2><ul class="tips">${(L.tips || []).map(x => `<li>${ic("bulb")}<span>${esc(x)}</span></li>`).join("")}</ul></div>
-      ${L.focus ? `<div class="panel blue row center" style="text-align:center"><div class="stack" style="gap:4px;align-items:center"><b>See it in 3D</b><span class="hint-text">Pull the ${esc((PROTO.find(p => p[0] === L.focus) || [])[1] || "part")} out of the bike and take it apart on screen.</span></div><button class="btn pri" data-3d="${L.focus}">${ic("cube")} Open in 3D</button></div>` : ""}
+      ${L.focus ? `<div class="panel blue row center" style="text-align:center"><div class="stack" style="gap:4px;align-items:center"><b>See the diagram</b><span class="hint-text">Open the ${esc((PROTO.find(p => p[0] === L.focus) || [])[1] || "part")} diagram and take it apart on screen.</span></div><button class="btn pri" data-3d="${L.focus}">${ic("cube")} See diagram</button></div>` : ""}
       ${(L.shops || []).length ? `<div class="stack"><h2 class="sec">Where to get parts & help</h2><div class="shops">${L.shops.map(k => shopCard(k)).join("")}</div></div>` : ""}
       <div class="lnav">${prev ? `<button class="btn" data-lesson="${prev.id}">${ic("back")} Part ${i}: ${esc(LESSONS[prev.id]?.title || prev.name)}</button>` : "<span></span>"}${next ? `<button class="btn tan" data-lesson="${next.id}">Part ${i + 2}: ${esc(LESSONS[next.id]?.title || next.name)} ${ic("next")}</button>` : `<button class="btn tan" data-go="gates">Go to the safety checks ${ic("next")}</button>`}</div>
     </div>`;
@@ -112,7 +112,7 @@ VIEWS.lesson = {
     $$("[data-toggle]", root).forEach(h => h.onclick = () => { const id = h.dataset.toggle; openSteps.has(id) ? openSteps.delete(id) : openSteps.add(id); render(false); });
     $$("[data-log]", root).forEach(b => b.onclick = () => openRecord("worklogs", null, { taskId: b.dataset.log }));
     $$("[data-photo]", root).forEach(b => b.onclick = () => uploadPhotos({ taskId: b.dataset.photo, kind: "During photo" }));
-    $$("[data-3d]", root).forEach(b => b.onclick = () => openIn3D(b.dataset["3d"]));
+    $$("[data-3d]", root).forEach(b => b.onclick = () => openDiagramFor(b.dataset["3d"]));
   }
 };
 const shopCard = k => { const s = SHOPS[k]; if (!s) return ""; return `<div class="shop"><span class="sico">${esc(s.name.replace(/^The /, "").slice(0, 2))}</span><b>${esc(s.name)}</b><p>${esc(s.what)}</p><div class="tags">${(s.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div><a class="btn sm" href="${esc(s.url)}" target="_blank" rel="noopener">Visit site ${ic("ext")}</a></div>`; };

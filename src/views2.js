@@ -110,7 +110,7 @@ DRAWER_EXTRA.parts = (p, isNew) => {
   return {
     head: partPill(S.parts[p.id] || p),
     top: `${PART_IMG[p.id] ? `<div style="text-align:center;background:var(--stage-bg);border-radius:14px;padding:6px"><img src="${PART_IMG[p.id]}" alt="" style="max-height:200px"></div>` : ""}
-    ${g3 ? `<button type="button" class="btn" id="q3d">${ic("cube")} See it in 3D</button>` : ""}
+    ${g3 ? `<button type="button" class="btn" id="q3d">${ic("cube")} See diagram</button>` : ""}
     ${askBtn(`Tell me about the ${p.name} on a 1977 GS750: what it does, what usually wears out, and how to inspect it.`, p.name, "btn ask")}
     ${partCatalogueHtml(p.id)}
     <div class="panel blue stack" style="padding:12px">
@@ -129,7 +129,7 @@ DRAWER_EXTRA.parts = (p, isNew) => {
       <div><h2 class="sec">Where to find this part</h2><div class="stack" style="gap:6px">${partFinderLinks(p)}</div></div>
       ${kids.length ? `<div><h2 class="sec">Sub-parts</h2><div class="linklist">${kids.map(k => `<button type="button" data-open="parts|${k.id}"><span class="mono faint">${k.id}</span><span class="grow">${esc(k.name)}</span>${partPill(k)}</button>`).join("")}</div></div>` : ""}`,
     bind(host) {
-      $("#q3d", host) && ($("#q3d", host).onclick = () => { const k = (PROTO.find(x => x[2] === p.id) || [])[0]; closeDrawer(); openIn3D(k); });
+      $("#q3d", host) && ($("#q3d", host).onclick = () => { const k = (PROTO.find(x => x[2] === p.id) || [])[0]; closeDrawer(); openDiagramFor(k); });
       const q = $("#qStatus", host); if (!q) return;
       q.onchange = async () => { if (busyDraft()) { q.value = S.parts[p.id].status; return; } await quickSet("parts", p.id, { status: q.value }, `${p.id} → ${q.value}`); };
       $("#qApprove", host).onclick = () => { if (!busyDraft()) approveInspection(p.id); };
