@@ -5,7 +5,7 @@
    and every position is computed from T, so assembling/exploding any number of times lands in the same place. */
 const D3 = { mode: {}, st: null };
 // every 3D diagram uses the fixed-angle viewer (pinch/+/− to zoom, slide or drag to move) unless a model sets lockView: false
-Object.values(D3_MODELS).forEach(m => { if (m.lockView === undefined) m.lockView = true; });
+Object.values(D3_MODELS).forEach(m => { if (m.lockView === undefined) m.lockView = true; if (m.spin4 === undefined) m.spin4 = m.lockView; if (m.fullscreen === undefined) m.fullscreen = true; });
 // Models drawn in the "+X = rider's right, +Z = forward" engine frame are left-handed, which renders as a mirror image of the
 // real bike. Flip them back with a negative X scale on the root (and look from the mirrored side) so left and right are correct.
 const D3_MIRROR = ["CMS-BLCK0003", "CMS-BLCK0013", "CMS-BLCK0014", "CMS-BLCK0015", "CMS-BLCK0040", "CMS-BLCK0041", "CMS-BLCK0044", "CMS-BLCK0049", "CMS-BLCK0050", "CMS-BLCK0074", "DG-EN-02", "CMS-BLCK0019", "DG-CH-02", "CMS-BLCK0057", "DG-BR-01", "CMS-BLCK0032", "CMS-BLCK0052", "CMS-BLCK0018"];
