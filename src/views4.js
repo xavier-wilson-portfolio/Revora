@@ -30,8 +30,8 @@ VIEWS.home = {
     <section class="hero2 full">
       <div class="hero2-text"><div class="eyebrow">${esc(m.bike || "1977 Suzuki GS750")} · Restoration course</div>
         <h1>Let's bring this GS750 back to life</h1>
-        <p>Fourteen parts, one step at a time. Every step tells you what to do and why, the 3D garage shows every piece, and the mechanic is a click away if you get stuck.</p>
-        <div class="act"><button class="btn tan big" data-lesson="${nx.id}">${ic("play")} ${lessonState(nx) === "todo" && nxi === 0 ? "Start Part 1" : "Continue Part " + (nxi + 1)}</button><button class="btn big" data-go="viewer">${ic("cube")} Explore in 3D</button></div></div>
+        <p>Fourteen parts, one step at a time. Every step tells you what to do and why, the 3D diagrams show every piece, and the mechanic is a click away if you get stuck.</p>
+        <div class="act"><button class="btn tan big" data-lesson="${nx.id}">${ic("play")} ${lessonState(nx) === "todo" && nxi === 0 ? "Start Part 1" : "Continue Part " + (nxi + 1)}</button>${(L.focus && GROUP_DIAG[L.focus] && scanBtn(GROUP_DIAG[L.focus], "Scan parts", "btn big")) || scanPickBtn("Scan parts", "btn big")}<button class="btn big" data-go="diagrams">${ic("cube")} Explore 3D diagrams</button></div></div>
       ${heroPhotoHtml()}
       <div class="specstrip">${SPECS.map(([v, l]) => `<div><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join("")}</div>
       <p class="specsrc">Published specs for the 1976–77 GS750. <a href="${SPEC_SOURCE.url}" target="_blank" rel="noopener">Source</a>. Always check against your bike and its factory manual.</p>
@@ -41,12 +41,12 @@ VIEWS.home = {
       <img src="img/${L.img}.svg" alt="">
       <div class="stack" style="gap:8px"><div class="eyebrow">${lessonState(nx) === "todo" && nxi === 0 ? "Start here" : "Pick up where you left off"} · Part ${nxi + 1} of 14</div><h2 class="disp">${esc(L.title || nx.name)}</h2><p class="muted" style="margin:0">${esc(L.short || "")}</p>
         <div class="row"><span class="num muted">${ns.done} of ${ns.total} steps</span><div class="progress" style="flex:1;min-width:120px"><i style="width:${ns.pct * 100}%"></i></div></div>
-        <div class="row"><button class="btn pri" data-lesson="${nx.id}">Open Part ${nxi + 1} ${ic("next")}</button>${askBtn(`I'm starting Part ${nxi + 1} (${L.title}). What should I do first, in simple steps?`, "Part " + (nxi + 1), "btn ask")}</div></div>
+        <div class="row"><button class="btn pri" data-lesson="${nx.id}">Open Part ${nxi + 1} ${ic("next")}</button>${askBtn(`I'm starting Part ${nxi + 1} (${L.title}). What should I do first, in simple steps?`, "Part " + (nxi + 1), "btn ask")}${(L.focus && GROUP_DIAG[L.focus] && scanBtn(GROUP_DIAG[L.focus], "Scan parts", "btn")) || scanPickBtn("Scan parts", "btn")}</div></div>
     </section>
     <section class="stack"><div class="sechead"><div class="eyebrow">How it works</div><h2 class="disp">Three things to remember</h2></div>
       <div class="steps3">
         <div class="step3"><span class="ico">${ic("book")}</span><span class="n">01</span><h3>Follow the course</h3><p>Start at Part 1. Tick off each step as you finish it.</p><button class="btn sm" data-go="course">See the course</button></div>
-        <div class="step3"><span class="ico">${ic("cube")}</span><span class="n">02</span><h3>Look before you wrench</h3><p>Pull any part out of the 3D bike to see how it fits together.</p><button class="btn sm" data-go="viewer">Open 3D garage</button></div>
+        <div class="step3"><span class="ico">${ic("cube")}</span><span class="n">02</span><h3>Look before you wrench</h3><p>Open the 3D diagram for any area to see how every piece fits together.</p><button class="btn sm" data-go="diagrams">Open 3D diagrams</button></div>
         <div class="step3"><span class="ico">${ic("chat")}</span><span class="n">03</span><h3>Ask when you're stuck</h3><p>The mechanic answers questions on every page and every step.</p><button class="btn sm ask" data-ask="" data-ask-ctx="">${ic("chat")} Ask the mechanic</button></div>
       </div></section>
     <section class="stack"><div class="sechead"><div class="eyebrow">The course</div><h2 class="disp">Your 14 parts</h2><p>Open any part, any time. The highlighted one is where you are now.</p></div>
