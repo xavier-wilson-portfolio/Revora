@@ -4,6 +4,8 @@
    Every part has an installed (A) and exploded (E) transform; the timeline T runs 0 (exploded) .. S (assembled)
    and every position is computed from T, so assembling/exploding any number of times lands in the same place. */
 const D3 = { mode: {}, st: null };
+// every 3D diagram uses the fixed-angle viewer (pinch/+/− to zoom, slide or drag to move) unless a model sets lockView: false
+Object.values(D3_MODELS).forEach(m => { if (m.lockView === undefined) m.lockView = true; });
 const d3On = d => !!(D3_MODELS[d.id] && D3.mode[d.id] !== "2d" && window.THREE && THREE.OrbitControls && THREE.BufferGeometryUtils && (typeof webglOK !== "function" || webglOK()));
 const D3_MATS = {
   chrome: { c: "#c9d0d5", m: .7, r: .32 }, alu: { c: "#b9b8b0", m: .35, r: .58 }, steel: { c: "#a9aeb3", m: .55, r: .45 }, zinc: { c: "#cbc3a6", m: .5, r: .45 },
