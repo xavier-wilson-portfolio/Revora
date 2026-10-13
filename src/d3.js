@@ -164,16 +164,16 @@ function d3Bind(root, d) {
     // pinch zoom: fingers apart = in, together = out. Trackpads send pinch as ctrl+wheel, Safari as gesture events. Zooms toward the fingers.
     const zoomAt = (f, cx, cy) => { const r = st.rend.domElement.getBoundingClientRect(); const n = new T.Vector3(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1, 0);
       const a = n.clone().unproject(st.cam); st.cam.zoom = Math.min(st.ctl.maxZoom, Math.max(st.ctl.minZoom, st.cam.zoom * f)); st.cam.updateProjectionMatrix();
-      const b = n.clone().unproject(st.cam).sub(a).negate(); st.cam.position.add(b); st.ctl.target.add(b); st.userCam = true; st.need = true; st.lbl = true; };
+      const b = n.clone().unproject(st.cam).sub(a).negate(); st.cam.position.add(b); st.ctl.target.add(b); d3Clamp(st); st.userCam = true; st.need = true; st.lbl = true; };
     const panBy = (dx, dy) => { const r = st.rend.domElement.getBoundingClientRect(); const v = (x, y) => new T.Vector3((x / r.width) * 2, -(y / r.height) * 2, 0).unproject(st.cam);
-      const b = v(dx, dy).sub(v(0, 0)); st.cam.position.add(b); st.ctl.target.add(b); st.userCam = true; st.need = true; st.lbl = true; };
+      const b = v(dx, dy).sub(v(0, 0)); st.cam.position.add(b); st.ctl.target.add(b); d3Clamp(st); st.userCam = true; st.need = true; st.lbl = true; };
     stage.addEventListener("wheel", e => { e.stopPropagation(); e.preventDefault(); const k = e.deltaMode === 1 ? 16 : 1;
       if (!e.ctrlKey) return panBy(e.deltaX * k, e.deltaY * k); // two-finger slide moves the drawing, only a pinch zooms
       const dy = e.deltaY * k; zoomAt(Math.exp(-dy * .012), e.clientX, e.clientY); }, { capture: true, passive: false });
     let g0 = 1; stage.addEventListener("gesturestart", e => { e.preventDefault(); g0 = 1; }, { passive: false });
     stage.addEventListener("gesturechange", e => { e.preventDefault(); zoomAt(e.scale / g0, e.clientX, e.clientY); g0 = e.scale; }, { passive: false });
     stage.addEventListener("gestureend", e => e.preventDefault(), { passive: false }); }
-  st.ctl.addEventListener("change", () => { st.need = true; st.lbl = true; }); st.ctl.addEventListener("start", () => { st.userCam = true; });
+  st.ctl.addEventListener("change", () => { d3Clamp(st); st.need = true; st.lbl = true; }); st.ctl.addEventListener("start", () => { st.userCam = true; });
   d3Apply(st); d3View(st, "iso");
   const resize = () => { const W = stage.clientWidth, H = stage.clientHeight; if (!W || !H) return; st.rend.setSize(W, H); d3Frustum(st); st.m.parts.forEach(p => p.hulls.forEach(hh => hh.material.uniforms.res.value.set(W, H))); st.need = true; st.lbl = true; };
   st.ro = new ResizeObserver(resize); st.ro.observe(stage); resize();
@@ -237,6 +237,27 @@ function d3View(st, v) {
   d3Frustum(st); st.ctl.update(); st.need = true; st.lbl = true;
 }
 // quarter-turn spin: orbit the camera about the vertical axis to the next of four fixed angles, refitting the frame as it turns
+// boundary: the point at the middle of the view may not leave the model's outline (as seen from the camera),
+// so however far you drag or zoom, part of the model always stays in frame
+function d3Clamp(st) {
+  // boundary: the middle of the view has to stay close to a real part, so you can look at any part close up
+  // but can never drag the model out of frame or into empty space
+  if (!st.model.lockView || st.clamping || st.spinning || !st.m) return; const T = THREE; st.clamping = true;
+  const key = st.T.toFixed(4) + "|" + st.m.parts.size + "|" + [...st.m.parts.values()].map(p => p.node.visible ? 1 : 0).join("");
+  if (!st.boxCache || st.boxCache.key !== key) { st.m.root.updateMatrixWorld(true); const boxes = [];
+    st.m.parts.forEach(p => { if (!p.node.visible) return; const b = new T.Box3(); p.meshes.forEach(me => b.expandByObject(me)); if (!b.isEmpty()) boxes.push(b); }); st.boxCache = { key, boxes }; }
+  st.cam.updateMatrixWorld(true);
+  const R = new T.Vector3().setFromMatrixColumn(st.cam.matrixWorld, 0), U = new T.Vector3().setFromMatrixColumn(st.cam.matrixWorld, 1);
+  const vw = (st.cam.right - st.cam.left) / 2 / st.cam.zoom, vh = (st.cam.top - st.cam.bottom) / 2 / st.cam.zoom, m = .12 * Math.min(vw, vh);
+  const tx = st.ctl.target.dot(R), ty = st.ctl.target.dot(U); let best = null;
+  st.boxCache.boxes.forEach(b => {
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    [b.min.x, b.max.x].forEach(x => [b.min.y, b.max.y].forEach(y => [b.min.z, b.max.z].forEach(z => { const q = new T.Vector3(x, y, z), a = q.dot(R), c = q.dot(U); x0 = Math.min(x0, a); x1 = Math.max(x1, a); y0 = Math.min(y0, c); y1 = Math.max(y1, c); })));
+    const nx = Math.max(x0 - m, Math.min(x1 + m, tx)), ny = Math.max(y0 - m, Math.min(y1 + m, ty)), d = (nx - tx) ** 2 + (ny - ty) ** 2;
+    if (!best || d < best.d) best = { d, nx, ny }; });
+  if (best && best.d > 1e-6) { const d = R.clone().multiplyScalar(best.nx - tx).add(U.clone().multiplyScalar(best.ny - ty)); st.ctl.target.add(d); st.cam.position.add(d); }
+  st.clamping = false;
+}
 function d3SpinBy(st, dirn) {
   const T = THREE; if (st.spinning) { st.spinQ = (st.spinQ || 0) + dirn; return; } st.spinning = true;
   const p0 = st.cam.position.clone(), t0 = st.ctl.target.clone(), h0 = st.half, z0 = st.cam.zoom, keepZoom = st.userCam;
