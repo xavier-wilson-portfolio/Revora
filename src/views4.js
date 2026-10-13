@@ -30,7 +30,7 @@ VIEWS.home = {
     <section class="hero2 full">
       <div class="hero2-text"><div class="eyebrow">${esc(m.bike || "1977 Suzuki GS750")} · Restoration course</div>
         <h1>Let's bring this GS750 back to life</h1>
-        <p>Fourteen parts, one step at a time. Every step tells you what to do and why, the diagrams show every piece, and the mechanic is a click away if you get stuck.</p>
+        <p>Fourteen parts, one step at a time. Every step tells you what to do and why, the 3D garage shows every piece, and the mechanic is a click away if you get stuck.</p>
         <div class="act"><button class="btn tan big" data-lesson="${nx.id}">${ic("play")} ${lessonState(nx) === "todo" && nxi === 0 ? "Start Part 1" : "Continue Part " + (nxi + 1)}</button><button class="btn big" data-go="viewer">${ic("cube")} Explore in 3D</button></div></div>
       ${heroPhotoHtml()}
       <div class="specstrip">${SPECS.map(([v, l]) => `<div><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join("")}</div>
@@ -46,12 +46,12 @@ VIEWS.home = {
     <section class="stack"><div class="sechead"><div class="eyebrow">How it works</div><h2 class="disp">Three things to remember</h2></div>
       <div class="steps3">
         <div class="step3"><span class="ico">${ic("book")}</span><span class="n">01</span><h3>Follow the course</h3><p>Start at Part 1. Tick off each step as you finish it.</p><button class="btn sm" data-go="course">See the course</button></div>
-        <div class="step3"><span class="ico">${ic("cube")}</span><span class="n">02</span><h3>Look before you wrench</h3><p>Open any part's diagram to see how it fits together.</p><button class="btn sm" data-go="diagrams">See diagram</button></div>
+        <div class="step3"><span class="ico">${ic("cube")}</span><span class="n">02</span><h3>Look before you wrench</h3><p>Pull any part out of the 3D bike to see how it fits together.</p><button class="btn sm" data-go="viewer">Open 3D garage</button></div>
         <div class="step3"><span class="ico">${ic("chat")}</span><span class="n">03</span><h3>Ask when you're stuck</h3><p>The mechanic answers questions on every page and every step.</p><button class="btn sm ask" data-ask="" data-ask-ctx="">${ic("chat")} Ask the mechanic</button></div>
       </div></section>
     <section class="stack"><div class="sechead"><div class="eyebrow">The course</div><h2 class="disp">Your 14 parts</h2><p>Open any part, any time. The highlighted one is where you are now.</p></div>
       <div class="lessons">${sorted("phases").map((p, i) => lessonCard(p, i, p.id === nx.id)).join("")}</div></section>
-    <section class="band full"><div class="band-in stack"><div class="sechead"><div class="eyebrow">Up close</div><h2 class="disp">Know every piece</h2><p>Click a picture to open that part's diagram.</p></div>
+    <section class="band full"><div class="band-in stack"><div class="sechead"><div class="eyebrow">Up close</div><h2 class="disp">Know every piece</h2><p>Click a picture to pull that part out of the bike in the 3D garage.</p></div>
       <div class="gallery2">${GALLERY.map(([img, t, d, g], i) => `<button class="gtile" data-3d="${g}"><img src="img/${img}.svg" alt="${esc(t)}" loading="lazy"><span><b>${esc(t)}</b><small>${esc(d)}</small></span></button>`).join("")}</div></div></section>
     <section class="vband"><div class="vb-text stack"><div class="eyebrow">Watch & learn</div><h2 class="disp">See a GS750 rebuilt, start to finish</h2><p class="muted" style="margin:0">A 20-part video series following one GS750 restoration. Watch an episode before you start the matching job.</p>
         <div class="row"><button class="btn pri" data-go="videos">${ic("play")} Watch the series</button><span class="hint-text">${VIDEOS.length} videos · ${totalRuntime()}</span></div></div>
@@ -74,7 +74,7 @@ VIEWS.home = {
     </div>
     <details class="more"><summary>Show all the numbers ${ic("chev")}</summary><div class="stack" style="margin-top:12px">${VIEWS.overview.render()}</div></details>`;
   },
-  bind(root) { bindHeroPhoto(root); bindSetup(root); bindTables(root); bindLessonLinks(root); bindStepChecks(root); $$("[data-3d]", root).forEach(b => b.onclick = () => openDiagramFor(b.dataset["3d"])); $("#qPhoto", root) && ($("#qPhoto", root).onclick = () => uploadPhotos({})); }
+  bind(root) { bindHeroPhoto(root); bindSetup(root); bindTables(root); bindLessonLinks(root); bindStepChecks(root); $$("[data-3d]", root).forEach(b => b.onclick = () => openIn3D(b.dataset["3d"])); $("#qPhoto", root) && ($("#qPhoto", root).onclick = () => uploadPhotos({})); }
 };
 
 /* ---------- Paint studio ---------- */

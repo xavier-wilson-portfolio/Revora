@@ -281,4 +281,5 @@ const DIAG_PENDING = [
   ["Cylinder head cover removal", "Needs the service manual's bolt order and photos of this engine. Not drawn to avoid guessing."],
   ["Wiring diagram (wire by wire)", "Needs the factory wiring diagram for the GS750 (B). The block diagram above covers how systems connect."],
   ["Harness routing", "Needs reference photos of a correctly routed frame. Add your own photos to the harness part until then."],
+  ["Gearbox and shift mechanism", "Not drawn yet. The 3D garage has a schematic of the shafts."],
 ];
