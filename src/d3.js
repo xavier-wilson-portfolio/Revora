@@ -130,7 +130,7 @@ function d3PageHtml(d) {
           <span class="dt-g">${tg("nums", "Part numbers")}${tg("names", "Names")}${tg("leaders", "Leader lines")}${tg("small", "Small hardware")}${tg("xray", "See through")}${tg("list", "Parts list")}</span>
         </div>
         <div class="d3stage" id="d3stage"><div class="d3lab" id="d3lab"></div><svg class="d3lead" id="d3lead"></svg><div class="d3cap" id="d3cap"></div><div class="d3tip" id="d3tip" hidden></div></div>
-        <p class="hint-text" style="text-align:left;margin:6px 0 0">${m.lockView ? "Scroll or use + and − to zoom, drag to move around." : "Drag to rotate, scroll to zoom, right-drag to pan."} Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
+        <p class="hint-text" style="text-align:left;margin:6px 0 0">${m.lockView ? "Pinch with two fingers (apart to zoom in, together to zoom out), scroll, or use + and −. Drag to move around." : "Drag to rotate, scroll to zoom, right-drag to pan."} Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
       </div>
       <aside class="d3side"><div class="tcard stack d3info" id="d3info"></div><div class="tcard stack d3list" id="d3list"></div></aside>
     </div>`;
@@ -144,7 +144,7 @@ function d3Bind(root, d) {
   const w = stage.clientWidth, h = stage.clientHeight;
   st.rend = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: !!window.__shotMode }); st.rend.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); st.rend.setSize(w, h);
   st.rend.outputEncoding = T.sRGBEncoding; st.rend.toneMapping = T.ACESFilmicToneMapping; st.rend.toneMappingExposure = .92; st.rend.setClearColor(0xffffff, 1); stage.prepend(st.rend.domElement);
-  st.rend.domElement.setAttribute("aria-label", `Parts model: ${d.title}. ${model.lockView ? "Scroll to zoom, drag to move." : "Drag to rotate, scroll to zoom, right-drag to pan."}`);
+  st.rend.domElement.setAttribute("aria-label", `Parts model: ${d.title}. ${model.lockView ? "Pinch or scroll to zoom, drag to move." : "Drag to rotate, scroll to zoom, right-drag to pan."}`);
   st.scene = new T.Scene(); const pm = new T.PMREMGenerator(st.rend); st.scene.environment = pm.fromScene(new T.RoomEnvironment(), .04).texture;
   st.scene.add(new T.HemisphereLight(0xffffff, 0xb8c0c6, .5));
   const key = new T.DirectionalLight(0xffffff, 1.25); key.position.set(-1.2, 2.4, 1.6); st.scene.add(key);
@@ -154,7 +154,16 @@ function d3Bind(root, d) {
   st.ctl = new T.OrbitControls(st.cam, st.rend.domElement); Object.assign(st.ctl, { enableDamping: true, dampingFactor: .1, screenSpacePanning: true, rotateSpeed: .7, zoomSpeed: 1.1 });
   if (model.lockView) { // fixed viewing angle: zoom and move only, the drawing never turns
     st.ctl.enableRotate = false; st.ctl.mouseButtons = { LEFT: T.MOUSE.PAN, MIDDLE: T.MOUSE.DOLLY, RIGHT: T.MOUSE.PAN }; st.ctl.touches = { ONE: T.TOUCH.PAN, TWO: T.TOUCH.DOLLY_PAN };
-    st.ctl.minZoom = .5; st.ctl.maxZoom = 14; }
+    st.ctl.minZoom = .5; st.ctl.maxZoom = 14;
+    // pinch zoom: fingers apart = in, together = out. Trackpads send pinch as ctrl+wheel, Safari as gesture events. Zooms toward the fingers.
+    const zoomAt = (f, cx, cy) => { const r = st.rend.domElement.getBoundingClientRect(); const n = new T.Vector3(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1, 0);
+      const a = n.clone().unproject(st.cam); st.cam.zoom = Math.min(st.ctl.maxZoom, Math.max(st.ctl.minZoom, st.cam.zoom * f)); st.cam.updateProjectionMatrix();
+      const b = n.clone().unproject(st.cam).sub(a).negate(); st.cam.position.add(b); st.ctl.target.add(b); st.userCam = true; st.need = true; st.lbl = true; };
+    stage.addEventListener("wheel", e => { e.preventDefault(); e.stopPropagation(); const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+      zoomAt(Math.exp(-dy * (e.ctrlKey ? .012 : .0025)), e.clientX, e.clientY); }, { capture: true, passive: false });
+    let g0 = 1; stage.addEventListener("gesturestart", e => { e.preventDefault(); g0 = 1; }, { passive: false });
+    stage.addEventListener("gesturechange", e => { e.preventDefault(); zoomAt(e.scale / g0, e.clientX, e.clientY); g0 = e.scale; }, { passive: false });
+    stage.addEventListener("gestureend", e => e.preventDefault(), { passive: false }); }
   st.ctl.addEventListener("change", () => { st.need = true; st.lbl = true; }); st.ctl.addEventListener("start", () => { st.userCam = true; });
   d3Apply(st); d3View(st, "iso");
   const resize = () => { const W = stage.clientWidth, H = stage.clientHeight; if (!W || !H) return; st.rend.setSize(W, H); d3Frustum(st); st.m.parts.forEach(p => p.hulls.forEach(hh => hh.material.uniforms.res.value.set(W, H))); st.need = true; st.lbl = true; };
