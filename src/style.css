@@ -1107,7 +1107,7 @@ body.tw-fullon .chat-fab{display:none}
 /* 3D illustrated parts viewer */
 .d3wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}.d3wrap.nolist{grid-template-columns:minmax(0,1fr) 300px}.d3wrap.nolist .d3list{display:none}
 .d3tools{flex-wrap:wrap}.d3tools input[type=range]{width:min(260px,30vw);accent-color:var(--navy)}
-.d3stage{position:relative;height:min(74vh,720px);min-height:420px;border:1px solid var(--line-2);border-radius:12px;background:#fff;overflow:hidden;touch-action:none}
+.d3stage{position:relative;height:min(74vh,720px);min-height:420px;border:1px solid var(--line-2);border-radius:12px;background:#dde3ea;overflow:hidden;touch-action:none}
 .d3stage canvas{display:block;width:100%;height:100%}
 .d3lab{position:absolute;inset:0;pointer-events:none;z-index:2}.d3lead{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
 .d3lead line{stroke:#3b4045;stroke-width:.8}.d3lead circle{fill:#3b4045}.d3lead .on{stroke:#1d6aa5;fill:#1d6aa5;stroke-width:1.4}

@@ -143,7 +143,7 @@ function d3Bind(root, d) {
   const st = D3.st = { id: d.id, model, T: keep ? keep.T : 0, goal: null, playing: false, sel: keep ? keep.sel : null, hidden: keep ? keep.hidden : new Set(), iso: keep ? keep.iso : null, force: keep ? keep.force : new Set(), opt: keep ? keep.opt : D3_OPT0(), need: true, lbl: true };
   const w = stage.clientWidth, h = stage.clientHeight;
   st.rend = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: !!window.__shotMode }); st.rend.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); st.rend.setSize(w, h);
-  st.rend.outputEncoding = T.sRGBEncoding; st.rend.toneMapping = T.ACESFilmicToneMapping; st.rend.toneMappingExposure = .92; st.rend.setClearColor(0xffffff, 1); stage.prepend(st.rend.domElement);
+  st.rend.outputEncoding = T.sRGBEncoding; st.rend.toneMapping = T.ACESFilmicToneMapping; st.rend.toneMappingExposure = .92; st.rend.setClearColor(0xdde3ea, 1); stage.prepend(st.rend.domElement);
   st.rend.domElement.setAttribute("aria-label", `Parts model: ${d.title}. ${model.lockView ? "Pinch to zoom, slide two fingers or drag to move." : "Drag to rotate, scroll to zoom, right-drag to pan."}`);
   st.scene = new T.Scene(); const pm = new T.PMREMGenerator(st.rend); st.scene.environment = pm.fromScene(new T.RoomEnvironment(), .04).texture;
   st.scene.add(new T.HemisphereLight(0xffffff, 0xb8c0c6, .5));
