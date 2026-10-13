@@ -135,8 +135,8 @@ function d3PageHtml(d) {
           ${m.lockView ? `<span class="dt-g"><button class="tb" data-d3z="in" title="Zoom in" aria-label="Zoom in">+</button><button class="tb" data-d3z="out" title="Zoom out" aria-label="Zoom out">−</button><button class="tb" data-d3v="fit">Fit</button><button class="tb" id="d3Reset">Reset</button></span>` : `<span class="dt-g"><button class="tb" data-d3v="iso">Iso</button><button class="tb" data-d3v="front">Front</button><button class="tb" data-d3v="side">Side</button><button class="tb" data-d3v="fit">Fit</button><button class="tb" id="d3Reset">Reset</button></span>`}
           <span class="dt-g">${tg("nums", "Part numbers")}${tg("names", "Names")}${tg("leaders", "Leader lines")}${tg("small", "Small hardware")}${tg("xray", "See through")}${tg("list", "Parts list")}</span>
         </div>
-        <div class="d3stage" id="d3stage">${m.spin4 ? `<button class="d3spin l" data-d3spin="1" title="Turn left" aria-label="Turn the model left">‹</button><button class="d3spin r" data-d3spin="-1" title="Turn right" aria-label="Turn the model right">›</button>` : ""}${m.tilt3 ? `<button class="d3spin u" data-d3tilt="1" title="View from the top" aria-label="Tilt to see it from the top">˄</button><button class="d3spin dn" data-d3tilt="-1" title="View from the bottom" aria-label="Tilt to see it from the bottom">˅</button>` : ""}${m.partsCheck && !st && lsGet("gs750.d3pm", false) ? "" : ""}${m.partsCheck ? `<button class="d3setbtn" id="d3Set" title="Settings" aria-label="Viewer settings" aria-haspopup="true">⚙</button><div class="d3menu" id="d3Menu" hidden><b>View</b><label class="dchk"><input type="checkbox" id="d3PM" ${(st ? st.partsMode : lsGet("gs750.d3pm", false)) ? "checked" : ""}> Parts check: mark what you have</label><p class="hint-text" style="text-align:left;margin:0">Click a part, then mark it as one you have or one that's missing. Green = have, red = missing. You can add a note to any part.</p></div><div class="d3legend" id="d3Leg" hidden></div><div class="d3chk" id="d3Chk" hidden></div>` : ""}${m.fullscreen ? `<button class="d3fsbtn" data-d3fs title="Full screen" aria-label="Full screen">⛶</button>` : ""}<div class="d3lab" id="d3lab"></div><svg class="d3lead" id="d3lead"></svg><div class="d3cap" id="d3cap"></div><div class="d3tip" id="d3tip" hidden></div></div>
-        <p class="hint-text" style="text-align:left;margin:6px 0 0">${m.lockView ? (m.spin4 ? "Use the arrows on each side to turn it a quarter turn" + (m.tilt3 ? ", and the top and bottom arrows to see it from above or below" : "") + ". " : "") + (m.partsCheck ? "Open the ⚙ settings for the parts check. " : "") + "Pinch with two fingers to zoom (apart = in, together = out), or use + and −. Slide two fingers or drag to move it around." : "Drag to rotate, scroll to zoom, right-drag to pan."} Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
+        <div class="d3stage" id="d3stage">${m.spin4 ? `<button class="d3spin l" data-d3spin="1" title="Turn left (hold to keep turning)" aria-label="Turn the model left">‹</button><button class="d3spin r" data-d3spin="-1" title="Turn right (hold to keep turning)" aria-label="Turn the model right">›</button>` : ""}${m.tilt3 ? `<button class="d3spin u" data-d3tilt="1" title="Tilt to look from higher up" aria-label="Tilt up to look from higher up">˄</button><button class="d3spin dn" data-d3tilt="-1" title="Tilt to look from lower down" aria-label="Tilt down to look from lower down">˅</button>` : ""}${m.partsCheck && !st && lsGet("gs750.d3pm", false) ? "" : ""}${m.partsCheck ? `<button class="d3setbtn" id="d3Set" title="Settings" aria-label="Viewer settings" aria-haspopup="true">⚙</button><div class="d3menu" id="d3Menu" hidden><b>View</b><label class="dchk"><input type="checkbox" id="d3PM" ${(st ? st.partsMode : lsGet("gs750.d3pm", false)) ? "checked" : ""}> Parts check: mark what you have</label><p class="hint-text" style="text-align:left;margin:0">Click a part, then mark it as one you have or one that's missing. Green = have, red = missing. You can add a note to any part.</p></div><div class="d3legend" id="d3Leg" hidden></div><div class="d3chk" id="d3Chk" hidden></div>` : ""}${m.fullscreen ? `<button class="d3fsbtn" data-d3fs title="Full screen" aria-label="Full screen">⛶</button>` : ""}<div class="d3lab" id="d3lab"></div><svg class="d3lead" id="d3lead"></svg><div class="d3cap" id="d3cap"></div><div class="d3tip" id="d3tip" hidden></div></div>
+        <p class="hint-text" style="text-align:left;margin:6px 0 0">${m.lockView ? (m.spin4 ? "Click the side arrows to turn it a little at a time all the way round" + (m.tilt3 ? ", and the top and bottom arrows to tilt it, right up to looking straight down or straight up from underneath" : "") + ". Hold an arrow to keep turning. " : "") + (m.partsCheck ? "Open the ⚙ settings for the parts check. " : "") + "Pinch with two fingers to zoom (apart = in, together = out), or use + and −. Slide two fingers or drag to move it around." : "Drag to rotate, scroll to zoom, right-drag to pan."} Click a part or a list entry to select it. ${esc(m.accuracy)} <a href="${esc(CMS + m.page + ".html")}" target="_blank" rel="noopener">Compare with the CMSNL picture</a>.</p>
       </div>
       <aside class="d3side"><div class="tcard stack d3info" id="d3info"></div><div class="tcard stack d3list" id="d3list"></div></aside>
     </div>`;
@@ -199,8 +199,12 @@ function d3Bind(root, d) {
   $("#d3Prev", root).onclick = () => { st.playing = true; st.goal = Math.max(0, Math.ceil(st.T - 1e-3) - 1); play.textContent = "Pause"; };
   $("#d3Reset", root).onclick = () => { st.spin = 0; st.tilt = 0; d3TiltBtns(st); st.userCam = false; st.playing = false; st.goal = null; play.textContent = "Play"; st.sel = null; st.iso = null; st.hidden.clear(); st.force.clear(); setT(0); d3View(st, "iso"); d3Paint(st); d3Side(st); };
   $$("[data-d3v]", root).forEach(b => b.onclick = () => d3View(st, b.dataset.d3v));
-  $$("[data-d3spin]", root).forEach(b => b.onclick = () => d3SpinBy(st, +b.dataset.d3spin));
-  $$("[data-d3tilt]", root).forEach(b => b.onclick = () => d3TiltBy(st, +b.dataset.d3tilt)); d3TiltBtns(st);
+  const holdBtn = (b, act) => { let t = null, held = false; const stop = () => { clearTimeout(t); t = null; };
+    b.onpointerdown = e => { if (e.button) return; held = false; stop(); t = setTimeout(function rep() { held = true; if (!b.disabled) act(); t = setTimeout(rep, 360); }, 420); };
+    ["pointerup", "pointerleave", "pointercancel"].forEach(ev => b.addEventListener(ev, stop));
+    b.onclick = () => { if (held) { held = false; return; } act(); }; };
+  $$("[data-d3spin]", root).forEach(b => holdBtn(b, () => d3SpinBy(st, +b.dataset.d3spin)));
+  $$("[data-d3tilt]", root).forEach(b => holdBtn(b, () => d3TiltBy(st, +b.dataset.d3tilt))); d3TiltBtns(st);
   const setb = $("#d3Set", root), menu = $("#d3Menu", root);
   if (setb) { setb.onclick = e => { e.stopPropagation(); menu.hidden = !menu.hidden; };
     menu.onclick = e => e.stopPropagation(); st.closeMenu = () => { menu.hidden = true; }; document.addEventListener("click", st.closeMenu);
@@ -226,9 +230,10 @@ function d3Bind(root, d) {
 }
 function d3Frustum(st) { const el = st.rend.domElement, W = el.clientWidth || 800, H = el.clientHeight || 600, a = W / H, s = st.half || 400; Object.assign(st.cam, { left: -s * a, right: s * a, top: s, bottom: -s }); st.cam.updateProjectionMatrix(); }
 function d3Bounds(st) { const b = new THREE.Box3(); st.m.parts.forEach(p => { if (p.node.visible) b.expandByObject(p.node); }); return b; }
-function d3DirFor(st) { const T = THREE, b = new T.Vector3(...st.model.view.dir).normalize().applyAxisAngle(new T.Vector3(0, 1, 0), (st.spin || 0) * Math.PI / 2);
-  if (!st.tilt) return b; const h = new T.Vector3(b.x, 0, b.z).normalize(), e = st.tilt * 76 * Math.PI / 180;
-  return h.multiplyScalar(Math.cos(e)).add(new T.Vector3(0, Math.sin(e), 0)).normalize(); }
+const D3_AZ = 30, D3_EL = 15, D3_ELMAX = 82; // degrees per click: sideways, up/down; steepest top/bottom view
+function d3El(st, steps) { const T = THREE, b = new T.Vector3(...st.model.view.dir).normalize(), e0 = Math.asin(b.y) * 180 / Math.PI; return Math.max(-D3_ELMAX, Math.min(D3_ELMAX, e0 + (steps || 0) * D3_EL)); }
+function d3DirFor(st) { const T = THREE, b = new T.Vector3(...st.model.view.dir).normalize(), az = Math.atan2(b.x, b.z) + (st.spin || 0) * D3_AZ * Math.PI / 180, el = d3El(st, st.tilt) * Math.PI / 180;
+  return new T.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize(); }
 function d3View(st, v) {
   // frame the visible parts exactly: project the bounding box corners into the view and size the ortho frustum to them
   const T = THREE; st.m.root.updateMatrixWorld(true); const b = d3Bounds(st); if (b.isEmpty()) return;
@@ -266,21 +271,22 @@ function d3Clamp(st) {
   if (best && best.d > 1e-6) { const d = R.clone().multiplyScalar(best.nx - tx).add(U.clone().multiplyScalar(best.ny - ty)); st.ctl.target.add(d); st.cam.position.add(d); }
   st.clamping = false;
 }
-function d3TiltBtns(st) { $$("[data-d3tilt]").forEach(b => { const end = +b.dataset.d3tilt === (st.tilt || 0); b.disabled = end; b.title = end ? (st.tilt > 0 ? "Already looking from the top" : "Already looking from the bottom") : (+b.dataset.d3tilt > 0 ? (st.tilt < 0 ? "Back to the normal view" : "View from the top") : (st.tilt > 0 ? "Back to the normal view" : "View from the bottom")); }); }
-function d3TiltBy(st, t) { const nt = Math.max(-1, Math.min(1, (st.tilt || 0) + t)); if (nt === (st.tilt || 0) || st.spinning) return; st.tiltTo = nt; d3SpinBy(st, 0); setTimeout(() => d3TiltBtns(st), 0); }
+function d3TiltBtns(st) { const cur = d3El(st, st.tilt); $$("[data-d3tilt]").forEach(b => { const t = +b.dataset.d3tilt, end = d3El(st, (st.tilt || 0) + t) === cur;
+  b.disabled = end; b.title = end ? (t > 0 ? "Already looking straight down from the top" : "Already looking straight up from underneath") : (t > 0 ? "Tilt to look from higher up" : "Tilt to look from lower down"); }); }
+function d3TiltBy(st, t) { if (st.spinning) { st.tiltQ = (st.tiltQ || 0) + t; return; } const nt = (st.tilt || 0) + t; if (d3El(st, nt) === d3El(st, st.tilt)) return; st.tiltTo = nt; d3SpinBy(st, 0); setTimeout(() => d3TiltBtns(st), 0); }
 function d3SpinBy(st, dirn) {
   const T = THREE; if (st.spinning) { if (dirn) st.spinQ = (st.spinQ || 0) + dirn; return; } st.spinning = true;
   const p0 = st.cam.position.clone(), t0 = st.ctl.target.clone(), h0 = st.half, z0 = st.cam.zoom, keepZoom = st.userCam;
-  st.spin = (((st.spin || 0) + dirn) % 4 + 4) % 4; if (st.tiltTo !== undefined) { st.tilt = st.tiltTo; delete st.tiltTo; } d3View(st, "iso");
-  const p1 = st.cam.position.clone(), t1 = st.ctl.target.clone(), h1 = st.half, z1 = keepZoom ? z0 : 1;
-  const o0 = p0.clone().sub(t0), o1 = p1.clone().sub(t1), a0 = Math.atan2(o0.x, o0.z);
+  const nAz = Math.round(360 / D3_AZ); st.spin = (((st.spin || 0) + dirn) % nAz + nAz) % nAz; if (st.tiltTo !== undefined) { st.tilt = st.tiltTo; delete st.tiltTo; } d3View(st, "iso");
+  const p1 = st.cam.position.clone(), tFit = st.ctl.target.clone(), t1 = keepZoom ? t0.clone() : tFit, h1 = keepZoom ? h0 : st.half, z1 = keepZoom ? z0 : 1; // zoomed in: turn around the spot you are looking at
+  const o0 = p0.clone().sub(t0), o1 = p1.clone().sub(tFit), a0 = Math.atan2(o0.x, o0.z);
   let da = Math.atan2(o1.x, o1.z) - a0; while (dirn > 0 && da <= 0) da += 2 * Math.PI; while (dirn < 0 && da >= 0) da -= 2 * Math.PI; if (!dirn) { while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI; }
-  const r0 = Math.hypot(o0.x, o0.z), r1 = Math.hypot(o1.x, o1.z), dur = 650, t00 = performance.now();
+  const r0 = Math.hypot(o0.x, o0.z), r1 = Math.hypot(o1.x, o1.z), dur = 380, t00 = performance.now();
   const step = now => { if (st.dead) return; const k = Math.min(1, (now - t00) / dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
     const a = a0 + da * e, r = r0 + (r1 - r0) * e, y = o0.y + (o1.y - o0.y) * e, tg = t0.clone().lerp(t1, e);
     st.ctl.target.copy(tg); st.cam.position.set(tg.x + Math.sin(a) * r, tg.y + y, tg.z + Math.cos(a) * r); st.cam.up.set(0, 1, 0); st.cam.lookAt(tg);
     st.half = h0 + (h1 - h0) * e; st.cam.zoom = z0 + (z1 - z0) * e; d3Frustum(st); st.ctl.update(); st.need = true; st.lbl = true;
-    if (k < 1) requestAnimationFrame(step); else { st.spinning = false; if (st.spinQ) { const q = Math.sign(st.spinQ); st.spinQ -= q; d3SpinBy(st, q); } } };
+    if (k < 1) requestAnimationFrame(step); else { st.spinning = false; d3TiltBtns(st); if (st.spinQ) { const q = Math.sign(st.spinQ); st.spinQ -= q; d3SpinBy(st, q); } else if (st.tiltQ) { const q = Math.sign(st.tiltQ); st.tiltQ -= q; d3TiltBy(st, q); } } };
   requestAnimationFrame(step);
 }
 function d3Caption(st) { const cap = $("#d3cap"); if (!cap) return; const S = st.model.stages.length, i = Math.min(S - 1, Math.floor(st.T + 1e-6));
